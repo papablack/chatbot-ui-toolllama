@@ -93,6 +93,8 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
         });
         homeDispatch({ field: 'loading', value: true });
         homeDispatch({ field: 'messageIsStreaming', value: true });
+        console.log("Set messageIsStreaming to true");
+
         const chatBody: ChatBody = {
           model: updatedConversation.model,
           messages: updatedConversation.messages,
@@ -124,6 +126,8 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
           signal: controller.signal,
           body,
         });
+        console.log(body);
+        console.log(response);
         if (!response.ok) {
           homeDispatch({ field: 'loading', value: false });
           homeDispatch({ field: 'messageIsStreaming', value: false });
@@ -161,12 +165,32 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
             const { value, done: doneReading } = await reader.read();
             done = doneReading;
             const chunkValue = decoder.decode(value);
-            text += chunkValue;
+            var chunks = chunkValue.split("\n");
+            for (var i = 0; i < chunks.length; i++) {
+              var json = null;
+              // remove whitespace-only messages
+              if (chunks[i].trim().length === 0) {
+                continue;
+              }
+              try {
+                  json = JSON.parse(chunks[i]);
+              } catch (e) {
+                  console.log(e);
+                  console.log(chunks[i]);
+                  continue;
+              }
+              if (json.type==="textresponse") {
+                text += json.content;
+              } else if (json.type === "toolevent") {
+
+              }
+            }
+
             if (isFirst) {
               isFirst = false;
               const updatedMessages: Message[] = [
                 ...updatedConversation.messages,
-                { role: 'assistant', content: chunkValue },
+                { role: 'assistant', content: text },
               ];
               updatedConversation = {
                 ...updatedConversation,
@@ -179,6 +203,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
             } else {
               const updatedMessages: Message[] =
                 updatedConversation.messages.map((message, index) => {
+
                   if (index === updatedConversation.messages.length - 1) {
                     return {
                       ...message,
@@ -197,6 +222,8 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
               });
             }
           }
+
+          console.log("updatedConversation", updatedConversation);
           saveConversation(updatedConversation);
           const updatedConversations: Conversation[] = conversations.map(
             (conversation) => {

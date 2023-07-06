@@ -87,6 +87,14 @@ export const OpenAIStream = async (
   const stream = new ReadableStream({
     async start(controller) {
       const onParse = (event: ParsedEvent | ReconnectInterval) => {
+        // here is where events get parsed. Note that an event is defined as
+        //{
+        //   type: 'event',
+        //   id: undefined,
+        //   event: undefined,
+        //   data: '{"id":"chatcmpl-7Z5SRkOjDYNSDjKLYJlbc450kzqXX","object":"chat.completion.chunk","created":1688596815,"model":"gpt-3.5-turbo-0613","choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}'
+        // }
+        // MARKER HERE
         if (event.type === 'event') {
           const data = event.data;
 
@@ -97,7 +105,13 @@ export const OpenAIStream = async (
               return;
             }
             const text = json.choices[0].delta.content;
-            const queue = encoder.encode(text);
+            var newobj = {
+                type: 'textresponse',
+                content: text,
+            }
+            console.log(newobj)
+            console.log("-------------------")
+            const queue = encoder.encode(JSON.stringify(newobj)+"\n");
             controller.enqueue(queue);
           } catch (e) {
             controller.error(e);

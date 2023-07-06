@@ -124,6 +124,28 @@ export const ChatMessage: FC<Props> = memo(({ message, messageIndex, onEdit }) =
     }
   }, [isEditing]);
 
+
+  // console.log('message', message); MARKER HERE
+  // var actualMessageContent = "";
+  // console.log('message', message); // MARKER HERE
+  // if (message.role === 'assistant') {
+  //   try {
+  //     var tempMessageContent = "["+(message.content.substring(0, message.content.length-1)) + "]";
+  //     var tempMessageContent2 = JSON.parse(tempMessageContent);
+  //     console.log('tempMessageContent2', tempMessageContent2); // MARKER HERE
+  //     // tempMessageContent2 is an array of objects that looks like {type: 'textresponse', content: '.'}
+  //     actualMessageContent = "";
+  //     for (var i = 0; i < tempMessageContent2.length; i++) {
+  //         actualMessageContent += tempMessageContent2[i].content;
+  //     }
+  //     console.log('tempMessageContent3', actualMessageContent); // MARKER HERE
+  //   } catch (error) {
+  //     actualMessageContent = message.content;
+  //   }
+  // } else {
+  //   actualMessageContent = message.content;
+  // }
+
   return (
     <div
       className={`group md:px-4 ${
@@ -209,6 +231,7 @@ export const ChatMessage: FC<Props> = memo(({ message, messageIndex, onEdit }) =
             </div>
           ) : (
             <div className="flex flex-row">
+              {/*LIKELY ADD TOOL DISPLAY HERE MARKER HERE*/}
               <MemoizedReactMarkdown
                 className="prose dark:prose-invert flex-1"
                 remarkPlugins={[remarkGfm, remarkMath]}

@@ -37,7 +37,6 @@ const useApiService = () => {
     },
     [fetchService],
   );
-
   return {
     getModels,
   };

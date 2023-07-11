@@ -165,26 +165,27 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
             const { value, done: doneReading } = await reader.read();
             done = doneReading;
             const chunkValue = decoder.decode(value);
-            var chunks = chunkValue.split("\n");
-            for (var i = 0; i < chunks.length; i++) {
-              var json = null;
-              // remove whitespace-only messages
-              if (chunks[i].trim().length === 0) {
-                continue;
-              }
-              try {
-                  json = JSON.parse(chunks[i]);
-              } catch (e) {
-                  console.log(e);
-                  console.log(chunks[i]);
-                  continue;
-              }
-              if (json.type==="textresponse") {
-                text += json.content;
-              } else if (json.type === "toolevent") {
-
-              }
-            }
+            text+=chunkValue;
+            // var chunks = chunkValue.split("\n");
+            // for (var i = 0; i < chunks.length; i++) {
+            //   var json = null;
+            //   // remove whitespace-only messages
+            //   if (chunks[i].trim().length === 0) {
+            //     continue;
+            //   }
+            //   try {
+            //       json = JSON.parse(chunks[i]);
+            //   } catch (e) {
+            //     console.log(e);
+            //     console.log(chunks[i]);
+            //     continue;
+            //   }
+            //   if (json.type==="textresponse") {
+            //     text += json.content;
+            //   } else if (json.type === "toolevent") {
+            //
+            //   }
+            // }
 
             if (isFirst) {
               isFirst = false;

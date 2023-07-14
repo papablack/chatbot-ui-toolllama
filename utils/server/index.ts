@@ -63,6 +63,8 @@ export const OpenAIStream = async (
     }),
   });
 
+  console.log(res);
+
   const encoder = new TextEncoder();
   const decoder = new TextDecoder();
 
@@ -95,6 +97,7 @@ export const OpenAIStream = async (
         //   data: '{"id":"chatcmpl-7Z5SRkOjDYNSDjKLYJlbc450kzqXX","object":"chat.completion.chunk","created":1688596815,"model":"gpt-3.5-turbo-0613","choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}'
         // }
         // MARKER HERE
+        console.log(event)
         if (event.type === 'event') {
           const data = event.data;
 
@@ -130,85 +133,45 @@ export const OpenAIStream = async (
   return stream;
 };
 
-const TOOL_LLAMA_HOST = "http://34.228.17.55"
+
 export const ToolLLaMaStream = async (
   messages: Message[],
 ) => {
-
-  let url = `${TOOL_LLAMA_HOST}/stream`;
-
-  const res = await fetch(url, {
-    headers: {
-      'Content-Type': 'application/json',
-    },
+  const url = "http://34.228.17.55:5000/stream";
+  // streamed response
+  const response = await fetch(url, {
     method: 'POST',
-    body: JSON.stringify({
-      messages: [
-        ...messages,
-      ],
-      stream: true,
-    }),
-  });
-
-  const encoder = new TextEncoder();
-  const decoder = new TextDecoder();
-
-  if (res.status !== 200) {
-    const result = await res.json();
-    if (result.error) {
-      console.log(result)
-    } else {
-      console.log(result)
-      // throw new Error(
-      //   `OpenAI API returned an error: ${
-      //     decoder.decode(result?.value) || result.statusText
-      //   }`,
-      // );
+    body: JSON.stringify({text: messages[messages.length-1].content}),
+    headers: {
+      'Content-Type': 'application/json'
     }
-  }
+  });
+  //@ts-ignore
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder('utf-8');
 
-  const stream = new ReadableStream({
-    async start(controller) {
-      const onParse = (event: ParsedEvent | ReconnectInterval) => {
-        // here is where events get parsed. Note that an event is defined as
-        //{
-        //   type: 'event',
-        //   id: undefined,
-        //   event: undefined,
-        //   data: '{"id":"chatcmpl-7Z5SRkOjDYNSDjKLYJlbc450kzqXX","object":"chat.completion.chunk","created":1688596815,"model":"gpt-3.5-turbo-0613","choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}'
-        // }
-        // MARKER HERE
-        if (event.type === 'event') {
-          const data = event.data;
-
-          try {
-            const json = JSON.parse(data);
-            if (json.type=="end_request") {
+  const convertToReadableStream = async (reader: ReadableStreamDefaultReader<Uint8Array>) => {
+    const stream = new ReadableStream({
+      async start(controller) {
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) {
               controller.close();
               return;
             }
-            // const text = json.choices[0].delta.content;
-            var newobj = {
-              type: 'textresponse',
-              content: data,
-            }
-            console.log(newobj)
-            console.log("-------------------")
-            const queue = encoder.encode(JSON.stringify(newobj)+"\n");
-            controller.enqueue(queue);
-          } catch (e) {
-            controller.error(e);
+            controller.enqueue(value);
           }
+        } finally {
+          reader.releaseLock();
         }
-      };
+      },
+    });
 
-      const parser = createParser(onParse);
+    return stream;
+  };
 
-      for await (const chunk of res.body as any) {
-        parser.feed(decoder.decode(chunk));
-      }
-    },
-  });
+  const stream = await convertToReadableStream(reader);
 
   return stream;
 };

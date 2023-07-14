@@ -33,7 +33,7 @@ import { ModelSelect } from './ModelSelect';
 import { SystemPrompt } from './SystemPrompt';
 import { TemperatureSlider } from './Temperature';
 import { MemoizedChatMessage } from './MemoizedChatMessage';
-
+import ProgressCardController from "@/components/Chat/ProgressCards/ProgressCardController";
 interface Props {
   stopConversationRef: MutableRefObject<boolean>;
 }
@@ -126,8 +126,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
           signal: controller.signal,
           body,
         });
-        console.log(body);
-        console.log(response);
+
         if (!response.ok) {
           homeDispatch({ field: 'loading', value: false });
           homeDispatch({ field: 'messageIsStreaming', value: false });
@@ -152,46 +151,52 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
           }
           homeDispatch({ field: 'loading', value: false });
           const reader = data.getReader();
-          const decoder = new TextDecoder();
+          const decoder = new TextDecoder('utf-8');
           let done = false;
           let isFirst = true;
           let text = '';
+          let result = '';
+          let resultObjs: any = [];
           while (!done) {
-            if (stopConversationRef.current === true) {
+            if (stopConversationRef.current) {
               controller.abort();
               done = true;
               break;
             }
             const { value, done: doneReading } = await reader.read();
             done = doneReading;
-            const chunkValue = decoder.decode(value);
-            text+=chunkValue;
-            // var chunks = chunkValue.split("\n");
-            // for (var i = 0; i < chunks.length; i++) {
-            //   var json = null;
-            //   // remove whitespace-only messages
-            //   if (chunks[i].trim().length === 0) {
-            //     continue;
-            //   }
-            //   try {
-            //       json = JSON.parse(chunks[i]);
-            //   } catch (e) {
-            //     console.log(e);
-            //     console.log(chunks[i]);
-            //     continue;
-            //   }
-            //   if (json.type==="textresponse") {
-            //     text += json.content;
-            //   } else if (json.type === "toolevent") {
-            //
-            //   }
-            // }
+            if (done) break;
+
+            var decoded = decoder.decode(value);
+            result += decoded;
+
+            var resultSplit = result.split('\n');
+            resultObjs = resultSplit.map((line) => {
+              try {
+                var obj = JSON.parse(line);
+                if (obj?.method_name === "on_request_end") {
+                  text = obj.output;
+                }
+                return obj;
+              } catch (e) {
+                // if the line is the last line, ignore it
+                if (line === "") {
+                  return null;
+                }
+              }
+            });
+            //@ts-ignore
+            resultObjs = resultObjs.filter((obj) => obj !== null);
+            console.log("resultObjs", resultObjs);
+
+            // Now we have a list of resultObjs just like before, turn it into a list of messages
+
 
             if (isFirst) {
               isFirst = false;
               const updatedMessages: Message[] = [
                 ...updatedConversation.messages,
-                { role: 'assistant', content: text },
+                { role: 'assistant', content: text, tools: resultObjs },
               ];
               updatedConversation = {
                 ...updatedConversation,
@@ -201,6 +206,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
                 field: 'selectedConversation',
                 value: updatedConversation,
               });
+
             } else {
               const updatedMessages: Message[] =
                 updatedConversation.messages.map((message, index) => {
@@ -209,6 +215,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
                     return {
                       ...message,
                       content: text,
+                      tools: resultObjs,
                     };
                   }
                   return message;
@@ -377,47 +384,49 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
 
   return (
     <div className="relative flex-1 overflow-hidden bg-white dark:bg-[#343541]">
-      {!(apiKey || serverSideApiKeyIsSet) ? (
-        <div className="mx-auto flex h-full w-[300px] flex-col justify-center space-y-6 sm:w-[600px]">
-          <div className="text-center text-4xl font-bold text-black dark:text-white">
-            Welcome to Chatbot UI
-          </div>
-          <div className="text-center text-lg text-black dark:text-white">
-            <div className="mb-8">{`Chatbot UI is an open source clone of OpenAI's ChatGPT UI.`}</div>
-            <div className="mb-2 font-bold">
-              Important: Chatbot UI is 100% unaffiliated with OpenAI.
-            </div>
-          </div>
-          <div className="text-center text-gray-500 dark:text-gray-400">
-            <div className="mb-2">
-              Chatbot UI allows you to plug in your API key to use this UI with
-              their API.
-            </div>
-            <div className="mb-2">
-              It is <span className="italic">only</span> used to communicate
-              with their API.
-            </div>
-            <div className="mb-2">
-              {t(
-                'Please set your OpenAI API key in the bottom left of the sidebar.',
-              )}
-            </div>
-            <div>
-              {t("If you don't have an OpenAI API key, you can get one here: ")}
-              <a
-                href="https://platform.openai.com/account/api-keys"
-                target="_blank"
-                rel="noreferrer"
-                className="text-blue-500 hover:underline"
-              >
-                openai.com
-              </a>
-            </div>
-          </div>
-        </div>
-      ) : modelError ? (
-        <ErrorMessageDiv error={modelError} />
-      ) : (
+      {
+      //   !(apiKey || serverSideApiKeyIsSet) ? (
+      //   <div className="mx-auto flex h-full w-[300px] flex-col justify-center space-y-6 sm:w-[600px]">
+      //     <div className="text-center text-4xl font-bold text-black dark:text-white">
+      //       Welcome to Chatbot UI
+      //     </div>
+      //     <div className="text-center text-lg text-black dark:text-white">
+      //       <div className="mb-8">{`Chatbot UI is an open source clone of OpenAI's ChatGPT UI.`}</div>
+      //       <div className="mb-2 font-bold">
+      //         Important: Chatbot UI is 100% unaffiliated with OpenAI.
+      //       </div>
+      //     </div>
+      //     <div className="text-center text-gray-500 dark:text-gray-400">
+      //       <div className="mb-2">
+      //         Chatbot UI allows you to plug in your API key to use this UI with
+      //         their API.
+      //       </div>
+      //       <div className="mb-2">
+      //         It is <span className="italic">only</span> used to communicate
+      //         with their API.
+      //       </div>
+      //       <div className="mb-2">
+      //         {t(
+      //           'Please set your OpenAI API key in the bottom left of the sidebar.',
+      //         )}
+      //       </div>
+      //       <div>
+      //         {t("If you don't have an OpenAI API key, you can get one here: ")}
+      //         <a
+      //           href="https://platform.openai.com/account/api-keys"
+      //           target="_blank"
+      //           rel="noreferrer"
+      //           className="text-blue-500 hover:underline"
+      //         >
+      //           openai.com
+      //         </a>
+      //       </div>
+      //     </div>
+      //   </div>
+      // ) : modelError ? (
+      //   <ErrorMessageDiv error={modelError} />
+      // ) :
+          (
         <>
           <div
             className="max-h-full overflow-x-hidden"
@@ -428,16 +437,20 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
               <>
                 <div className="mx-auto flex flex-col space-y-5 md:space-y-10 px-3 pt-5 md:pt-12 sm:max-w-[600px]">
                   <div className="text-center text-3xl font-semibold text-gray-800 dark:text-gray-100">
-                    {models.length === 0 ? (
-                      <div>
-                        <Spinner size="16px" className="mx-auto" />
-                      </div>
-                    ) : (
+                    {
+                    //   models.length === 0 ? (
+                    //   <div>
+                    //     <Spinner size="16px" className="mx-auto" />
+                    //   </div>
+                    // ) :
+                      (
                       'Chatbot UI'
                     )}
                   </div>
 
-                  {models.length > 0 && (
+                  {
+                    // models.length > 0 &&
+                    (
                     <div className="flex h-full flex-col space-y-4 rounded-lg border border-neutral-200 p-4 dark:border-neutral-600">
                       <ModelSelect />
 
@@ -452,15 +465,15 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
                         }
                       />
 
-                      <TemperatureSlider
-                        label={t('Temperature')}
-                        onChangeTemperature={(temperature) =>
-                          handleUpdateConversation(selectedConversation, {
-                            key: 'temperature',
-                            value: temperature,
-                          })
-                        }
-                      />
+                      {/*<TemperatureSlider*/}
+                      {/*  label={t('Temperature')}*/}
+                      {/*  onChangeTemperature={(temperature) =>*/}
+                      {/*    handleUpdateConversation(selectedConversation, {*/}
+                      {/*      key: 'temperature',*/}
+                      {/*      value: temperature,*/}
+                      {/*    })*/}
+                      {/*  }*/}
+                      {/*/>*/}
                     </div>
                   )}
                 </div>

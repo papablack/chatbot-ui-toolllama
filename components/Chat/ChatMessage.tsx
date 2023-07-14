@@ -22,6 +22,7 @@ import { MemoizedReactMarkdown } from '../Markdown/MemoizedReactMarkdown';
 import rehypeMathjax from 'rehype-mathjax';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
+import ProgressCardController from "@/components/Chat/ProgressCards/ProgressCardController";
 
 export interface Props {
   message: Message;
@@ -124,30 +125,10 @@ export const ChatMessage: FC<Props> = memo(({ message, messageIndex, onEdit }) =
     }
   }, [isEditing]);
 
-
-  // console.log('message', message); MARKER HERE
-  // var actualMessageContent = "";
-  // console.log('message', message); // MARKER HERE
-  // if (message.role === 'assistant') {
-  //   try {
-  //     var tempMessageContent = "["+(message.content.substring(0, message.content.length-1)) + "]";
-  //     var tempMessageContent2 = JSON.parse(tempMessageContent);
-  //     console.log('tempMessageContent2', tempMessageContent2); // MARKER HERE
-  //     // tempMessageContent2 is an array of objects that looks like {type: 'textresponse', content: '.'}
-  //     actualMessageContent = "";
-  //     for (var i = 0; i < tempMessageContent2.length; i++) {
-  //         actualMessageContent += tempMessageContent2[i].content;
-  //     }
-  //     console.log('tempMessageContent3', actualMessageContent); // MARKER HERE
-  //   } catch (error) {
-  //     actualMessageContent = message.content;
-  //   }
-  // } else {
-  //   actualMessageContent = message.content;
-  // }
-
   return (
-    <div
+    <>
+      <ProgressCardController progressJson={message.tools} />
+      <div
       className={`group md:px-4 ${
         message.role === 'assistant'
           ? 'border-b border-black/10 bg-gray-50 text-gray-800 dark:border-gray-900/50 dark:bg-[#444654] dark:text-gray-100'
@@ -155,6 +136,7 @@ export const ChatMessage: FC<Props> = memo(({ message, messageIndex, onEdit }) =
       }`}
       style={{ overflowWrap: 'anywhere' }}
     >
+
       <div className="relative m-auto flex p-4 text-base md:max-w-2xl md:gap-6 md:py-6 lg:max-w-2xl lg:px-0 xl:max-w-3xl">
         <div className="min-w-[40px] text-right font-bold">
           {message.role === 'assistant' ? (
@@ -309,6 +291,8 @@ export const ChatMessage: FC<Props> = memo(({ message, messageIndex, onEdit }) =
         </div>
       </div>
     </div>
+    </>
+
   );
 });
 ChatMessage.displayName = 'ChatMessage';

@@ -7,6 +7,12 @@ export const config = {
 };
 
 const handler = async (req: Request): Promise<Response> => {
+  return new Response(JSON.stringify([
+    {id: 'single-tool', name: 'Single Tool'},
+    {id: 'multi-tool', name: 'Multi Tool'},
+    { id: 'gpt-4', name: 'GPT-4' },
+    { id: 'gpt-3.5-turbo', name: 'GPT-3.5' }
+  ]), { status: 200 });
   try {
     const { key } = (await req.json()) as {
       key: string;
@@ -61,7 +67,6 @@ const handler = async (req: Request): Promise<Response> => {
         }
       })
       .filter(Boolean);
-
     return new Response(JSON.stringify(models), { status: 200 });
   } catch (error) {
     console.error(error);

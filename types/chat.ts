@@ -1,7 +1,13 @@
 import { OpenAIModel } from './openai';
 
+export interface BaseUsage {
+    block_id: string;
+    occurence : number;
+    type: "tool" | "llm";
+}
 
-export interface LLMUsage {
+export interface LLMUsage extends BaseUsage {
+    type: "llm";
     block_id: string;
     occurence : number;
     agent_scratchpad: string;
@@ -11,7 +17,8 @@ export interface LLMUsage {
 }
 
 
-export interface ToolUsage {
+export interface ToolUsage extends BaseUsage {
+    type: "tool";
     block_id: string;
     occurence : number;
     thought: string;
@@ -23,7 +30,7 @@ export interface ToolUsage {
 export interface Message {
   role: Role;
   content: string;
-  tools?: ToolUsage[] | LLMUsage[];
+  tools: ToolUsage[] | LLMUsage[];
 }
 
 export type Role = 'assistant' | 'user';

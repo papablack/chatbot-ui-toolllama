@@ -2,18 +2,18 @@ import Box from '@mui/material/Box';
 import Container from "@mui/material/Container";
 import LLMProgressCard from "./LLMProgressCard";
 import ToolProgressCard from "./ToolProgressCard";
-import {useState} from "react";
+import {ReactElement, useState} from "react";
 import Typography from "@mui/material/Typography";
 import Alert from "@mui/material/Alert";
-import {LLMUsage, ToolUsage} from "@/types/chat";
+import {BaseUsage, LLMUsage, ToolUsage} from "@/types/chat";
 
 const generate_random_id = () => {
   return Math.random().toString(36).substr(2, 9);
 }
-const generateCards = (progressJson: any) => {
+const processObjs = (progressJson: any):BaseUsage[]  => {
   // check if progressJson is a list, and if its empty
   if (!Array.isArray(progressJson) || !progressJson.length) {
-    return null;
+    return [];
   }
   var id_order: string[] = [];
   var obj_dict:  any = {};
@@ -22,7 +22,7 @@ const generateCards = (progressJson: any) => {
   // create a dictionary of objects, with the block_id as the key
 
   progressJson.forEach((progress) => {
-    if (!progress) return null;
+    if (!progress) return [];
     // if (progress.block_id === "start") {
     //   id_order.push("start");
     //   obj_dict["start"] = (
@@ -106,34 +106,58 @@ const generateCards = (progressJson: any) => {
       }
     }
   });
-  var ret= [];
+  var ret:BaseUsage[]= [];
   // for each object, add it to the return list
   for (var i = 0; i < id_order.length; i++) {
     var block_id = id_order[i];
-    if (block_id.includes("llm")) {
-      ret.push(
-        <LLMProgressCard
-          key={block_id}
-          data={obj_dict[block_id]}
-        />
-      )
-    } else if (block_id.includes("tool")) {
-      ret.push(
-        <ToolProgressCard
-          key={block_id}
-          data={obj_dict[block_id]}
-        />
-      )
-    } else {
-      ret.push(obj_dict[id_order[i]]);
-    }
+    ret.push(obj_dict[block_id]);
+
+    // if (block_id.includes("llm")) {
+    //   ret.push(obj_dict[block_id])
+    // } else if (block_id.includes("tool")) {
+    //   ret.push(
+    //     <ToolProgressCard
+    //       key={block_id}
+    //       data={obj_dict[block_id]}
+    //     />
+    //   )
+    // } else {
+    //   ret.push(obj_dict[id_order[i]]);
+    // }
 
   }
+  ret = ret.filter((x) => x !== undefined);
   console.log(ret)
-  // make these cards display in a column, and align to the left
+  return ret;
+}
+
+const generateCards = (progressJson: any) => {
+  var progressObjs: BaseUsage[] = processObjs(progressJson);
+  console.log(progressObjs);
+  var components : ReactElement[] = [];
+  for (var i = 0; i < progressObjs.length; i++) {
+    // console.log(progressObjs[i])
+    if (progressObjs[i].block_id.includes("llm")) {
+      var temp = progressObjs[i] as LLMUsage;
+      components.push(
+        <LLMProgressCard
+          key={progressObjs[i].block_id}
+          data={temp}
+        />
+      )
+    } else if (progressObjs[i].block_id.includes("tool")) {
+      var temp2: ToolUsage = progressObjs[i] as ToolUsage;
+      components.push(
+        <ToolProgressCard
+          key={progressObjs[i].block_id}
+          data={temp2}
+        />
+      )
+    }
+  }
   return (
-    <Box sx={{display: 'flex', flexDirection: 'column', alignItems: 'flex-start', ml:1}}>
-      {ret}
+    <Box sx={{display: 'flex', flexDirection: 'column', alignItems: 'flex-start'}}>
+      {components}
     </Box>
   )
 }

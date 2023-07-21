@@ -84,6 +84,8 @@ const ToolProgressCard = (props: ToolProgressCardProps) => {
         bgcolor: '#',
         //set min width
         minWidth: '600px',
+        // set max width
+        maxWidth: '600px',
       }}>
         <CardHeader
           avatar={

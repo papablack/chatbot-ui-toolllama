@@ -3,7 +3,7 @@ import { OpenAIModel } from './openai';
 export interface BaseUsage {
     block_id: string;
     occurence : number;
-    type: "tool" | "llm";
+    type: "tool" | "llm" | "recommendation";
 }
 
 export interface LLMUsage extends BaseUsage {
@@ -27,10 +27,23 @@ export interface ToolUsage extends BaseUsage {
     tool_input: string;
     output: string;
 }
+
+export interface Tool {
+  tool_name: string;
+  tool_desc: string;
+}
+export interface ToolRecommendation extends BaseUsage {
+  type: "recommendation";
+  occurence : number;
+  block_id: string;
+  recommendations: Tool[];
+}
+
 export interface Message {
   role: Role;
   content: string;
   tools: ToolUsage[] | LLMUsage[];
+  recommendations: ToolRecommendation[];
 }
 
 export type Role = 'assistant' | 'user';

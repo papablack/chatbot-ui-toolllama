@@ -3,9 +3,11 @@ import { ToolLLaMAModel } from './toolllama';
 export interface BaseUsage {
     block_id: string;
     occurence : number;
-    type: "tool" | "llm" | "recommendation";
+    type: "tool" | "llm" | "recommendation" | "root";
     ongoing: boolean;
     depth: number;
+    children: BaseUsage[];
+    parent: BaseUsage | null;
 }
 
 export interface IntermediateMessage {

@@ -95,6 +95,7 @@ const CompareElements = (a: LLMUsage | ToolUsage, b: LLMUsage | ToolUsage) => {
 export const MemoizedChatMessage: FC<Props> = memo(
     ChatMessage,
     (prevProps, nextProps) => {
+        return false;
         if (prevProps.message.content !== nextProps.message.content) {
             return false;
         }

@@ -14,7 +14,7 @@ export class OpenAIError extends Error {
   }
 }
 
-const url = "https://ch79zkaz6ryeni-5000.proxy.runpod.net/stream";
+const url = "https://xc44c40rny5tvg-5000.proxy.runpod.net/stream";
 
 export const ToolLLaMaStream = async (
   messages: Message[],
@@ -36,7 +36,6 @@ export const ToolLLaMaStream = async (
   //@ts-ignore
   const reader = response.body.getReader();
   const decoder = new TextDecoder('utf-8');
-
   const convertToReadableStream = async (reader: ReadableStreamDefaultReader<Uint8Array>) => {
     const stream = new ReadableStream({
       async start(controller) {

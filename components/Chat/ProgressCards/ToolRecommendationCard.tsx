@@ -46,13 +46,15 @@ const Transition = React.forwardRef(function Transition(
 });
 
 interface ToolProgressCardProps {
-  data: ToolRecommendation
+  data: ToolRecommendation,
+  children?: React.ReactNode
 }
 
 const summarizeToolUsage = (toolUsage: ToolRecommendation) => {
   var recommendations = toolUsage.recommendations;
   // var summary = "Using tools: ";
   var summary = "";
+  // if (!recommendations) return "Not available yet"
   if (recommendations.length == 0) {
     return "";
   }
@@ -93,21 +95,19 @@ const ToolProgressCard = (props: ToolProgressCardProps) => {
       </IconButton>
     }
   }
-
-  console.log("Props", props.data)
+  if (!props.data.recommendations) props.data.recommendations = [];
   return (
     <Box sx={{
       // set margin left
-      m: 0.5,
-      ml: 1
+      m:0
     }}>
       <Card sx={{
         // set background color
         bgcolor: '#',
         //set min width
-        minWidth: '600px',
+        minWidth: '500px',
         // set max width
-        maxWidth: '600px',
+        maxWidth: '500px',
       }}>
         <CardHeader
           avatar={
@@ -123,7 +123,7 @@ const ToolProgressCard = (props: ToolProgressCardProps) => {
               }}>
                 {/*Make first part bold and second part normal*/}
                 <span style={{ fontWeight: 'bold' }}>Tool Recommendations: </span> {toolSummary ?
-                  (toolSummary.length > 30 ? toolSummary.substring(0, 30) + "..." : toolSummary)
+                  (toolSummary.length > 20 ? toolSummary.substring(0, 20) + "..." : toolSummary)
                   : "Not available"}
               </Typography>
             </>

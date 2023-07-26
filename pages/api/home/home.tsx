@@ -336,7 +336,6 @@ const Home = ({
           folderId: null,
         },
       });
-      console.log(ToolLLaMAMethods[defaultMethodId])
     }
   }, [
     defaultMethodId,

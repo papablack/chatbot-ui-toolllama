@@ -25,24 +25,24 @@ import DialogTitle from '@mui/material/DialogTitle';
 import Slide from '@mui/material/Slide';
 import Button from "@mui/material/Button";
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
-import { TransitionProps } from '@mui/material/transitions';
+import {TransitionProps} from '@mui/material/transitions';
 import {LLMUsage, ToolUsage} from "@/types/chat";
+import CircularProgressWithContent from "@/components/Chat/ProgressCards/CircularProgressWithIcon";
 
 interface ExpandMoreProps extends IconButtonProps {
   expand: boolean;
 }
 
 const ExpandMore = styled((props: ExpandMoreProps) => {
-  const { expand, ...other } = props;
+  const {expand, ...other} = props;
   return <IconButton {...other} />;
-})(({ theme, expand }) => ({
+})(({theme, expand}) => ({
   transform: !expand ? 'rotate(0deg)' : 'rotate(180deg)',
   marginLeft: 'auto',
   transition: theme.transitions.create('transform', {
     duration: theme.transitions.duration.shortest,
   }),
 }));
-
 
 
 const Transition = React.forwardRef(function Transition(
@@ -117,19 +117,25 @@ const ToolProgressCard = (props: ToolProgressCardProps) => {
     <Box sx={{
       // set margin left
       m: 0.5,
-      ml: 1 + depth
+      ml: 0,
+      // ml: 1 + depth,
+      width: '100%',
     }}>
       <Card sx={{
         // set background color
         bgcolor: '#',
         //set min width
-        minWidth: '600px',
+        width: '100%',
         // set max width
-        maxWidth: '600px',
+        // maxWidth: '600px',
       }}>
         <CardHeader
           avatar={
-            <BuildIcon/>
+            <BuildIcon fontSize="small"/>
+            // <CircularProgressWithContent
+            //   icon={}
+            //   progress={data.ongoing}
+            // />
           }
           action={
             <ExpandMore
@@ -142,17 +148,17 @@ const ToolProgressCard = (props: ToolProgressCardProps) => {
             </ExpandMore>
           }
           title={
-          <>
-            <Typography paragraph sx={{
-              m:0
-            }}>
-              {/*Make first part bold and second part normal*/}
-              <span style={{ fontWeight: 'bold' }}>{data.occurence}. Using Tools: </span>
-              {data.tool_name ?
-                (data.tool_name.length > 30 ? data.tool_name.substring(0, 30) + "..." : data.tool_name)
-                : "Not available"}
-            </Typography>
-          </>
+            <>
+              <Typography paragraph sx={{
+                m: 0
+              }}>
+                {/*Make first part bold and second part normal*/}
+                <span style={{fontWeight: 'bold'}}>{data.occurence}. Using Tools: </span>
+                {data.tool_name ?
+                  (data.tool_name.length > 30 ? data.tool_name.substring(0, 30) + "..." : data.tool_name)
+                  : "Not available"}
+              </Typography>
+            </>
           }
           sx={{
             // left align title
@@ -172,7 +178,7 @@ const ToolProgressCard = (props: ToolProgressCardProps) => {
           }}>
             {OptionalParagraphTitleTypography(data.action, "Action: ", undefined)}
 
-            {data.tool_name? (
+            {data.tool_name ? (
               // put these in the same line
               <Box sx={{
                 display: 'flex',
@@ -197,12 +203,12 @@ const ToolProgressCard = (props: ToolProgressCardProps) => {
                   <InfoOutlinedIcon/>
                 </IconButton>
               </Box>
-            ):(
+            ) : (
               <></>
             )}
             {OptionalParagraphTitleTypography(data.tool_input, "Tool Input: ", undefined)}
             {OptionalParagraphTitleTypography(data.output, "Tool Output: ", undefined)}
-            {data.tool_description? (
+            {data.tool_description ? (
               // make a button that says "Show Scratchpad", and when clicked, opens a dialog box with the scratchpad
               <>
                 <Dialog
@@ -223,11 +229,9 @@ const ToolProgressCard = (props: ToolProgressCardProps) => {
                 </Dialog>
 
               </>
-            ): (
+            ) : (
               <></>
             )}
-
-
           </CardContent>
         </Collapse>
       </Card>

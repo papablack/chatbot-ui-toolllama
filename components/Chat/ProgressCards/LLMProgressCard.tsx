@@ -26,6 +26,7 @@ import Slide from '@mui/material/Slide';
 import { TransitionProps } from '@mui/material/transitions';
 import {LLMUsage, ToolUsage} from "@/types/chat";
 import ReactJson from 'react-json-view'
+import CircularProgressWithContent from "@/components/Chat/ProgressCards/CircularProgressWithIcon";
 
 interface ExpandMoreProps extends IconButtonProps {
   expand: boolean;
@@ -114,24 +115,33 @@ const LLMProgressCard = (props: LLMProgressCardProps) => {
   }
 
   const last_message = data.messages[data.messages.length - 1].content;
+  // console.log("data.messages", data.messages)
   const depth = data.depth || 0;
   return (
     <Box sx={{
       // set margin left based on depth
       m: 0.5,
-      ml: 1 + depth
+      ml:0,
+      // ml: 1,
+      // ml: 1 + depth
+      width: '100%',
     }}>
       <Card sx={{
         // set background color
         bgcolor: '#',
         //set min width
-        minWidth: '600px',
-        // set max width
-        maxWidth: '600px',
+        width: '100%',
+        // // set max width
+        // maxWidth: '600px',
       }}>
         <CardHeader
           avatar={
-            <SmartToyIcon/>
+          // SmartToyIcon with smaller size
+            <SmartToyIcon fontSize="small"/>
+            // <CircularProgressWithContent
+            //   icon={<SmartToyIcon/>}
+            //   progress={data.ongoing}
+            // />
           }
           action={
             <ExpandMore

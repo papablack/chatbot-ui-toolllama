@@ -141,23 +141,19 @@ const ToolProgressCard = (props: ToolProgressCardProps) => {
               <ExpandMoreIcon/>
             </ExpandMore>
           }
-          title={<Typography paragraph sx={{
-            fontWeight: 'bold',
-            m: 0,
-          }}>
-            {"Using Tools - " + data.occurence}
-          </Typography>}
-          subheader={
+          title={
+          <>
             <Typography paragraph sx={{
-              // remove margin
-              m: 0,
-              //Italicize text
-              fontStyle: 'italic',
+              m:0
             }}>
+              {/*Make first part bold and second part normal*/}
+              <span style={{ fontWeight: 'bold' }}>{data.occurence}. Using Tools: </span>
               {data.tool_name ?
-                (data.tool_name.length > 50 ? data.tool_name.substring(0, 50) + "..." : data.tool_name)
+                (data.tool_name.length > 30 ? data.tool_name.substring(0, 30) + "..." : data.tool_name)
                 : "Not available"}
-            </Typography>}
+            </Typography>
+          </>
+          }
           sx={{
             // left align title
             textAlign: 'left',

@@ -143,23 +143,19 @@ const LLMProgressCard = (props: LLMProgressCardProps) => {
               <ExpandMoreIcon/>
             </ExpandMore>
           }
-          title={<Typography paragraph sx={{
-            fontWeight: 'bold',
-            m: 0,
-          }}>
-            {"Inferencing LLaMA - " + data.occurence}
-          </Typography>}
-          subheader={
-            <Typography paragraph sx={{
-              // remove margin
-              m: 0,
-              //Italicize text
-              fontStyle: 'italic',
-            }}>
-              {last_message ?
-                (last_message.length > 50 ? last_message.substring(0, 50) + "..." : last_message)
-                : "Not available"}
-            </Typography>}
+          title={
+            <>
+              <Typography paragraph sx={{
+                m:0
+              }}>
+                {/*Make first part bold and second part normal*/}
+                <span style={{ fontWeight: 'bold' }}>{data.occurence}. Inferencing LLaMA: </span>
+                {last_message ?
+                  (last_message.length > 50 ? last_message.substring(0, 50) + "..." : last_message)
+                  : "Not available"}
+              </Typography>
+            </>
+          }
           sx={{
             // left align title
             textAlign: 'left',

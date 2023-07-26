@@ -4,14 +4,14 @@ import { useTranslation } from 'next-i18next';
 
 import { useCreateReducer } from '@/hooks/useCreateReducer';
 
-import { DEFAULT_SYSTEM_PROMPT, DEFAULT_TEMPERATURE } from '@/utils/app/const';
+import { DEFAULT_TOP_K } from '@/utils/app/const';
 import { saveConversation, saveConversations } from '@/utils/app/conversation';
 import { saveFolders } from '@/utils/app/folders';
 import { exportData, importData } from '@/utils/app/importExport';
 
 import { Conversation } from '@/types/chat';
 import { LatestExportFormat, SupportedExportFormats } from '@/types/export';
-import { OpenAIModels } from '@/types/openai';
+import { ToolLLaMAMethods } from '@/types/toolllama';
 import { PluginKey } from '@/types/plugin';
 
 import HomeContext from '@/pages/api/home/home.context';
@@ -34,7 +34,7 @@ export const Chatbar = () => {
   });
 
   const {
-    state: { conversations, showChatbar, defaultModelId, folders, pluginKeys },
+    state: { conversations, showChatbar, defaultMethodId, folders, pluginKeys },
     dispatch: homeDispatch,
     handleCreateFolder,
     handleNewConversation,
@@ -99,29 +99,28 @@ export const Chatbar = () => {
   };
 
   const handleImportConversations = (data: SupportedExportFormats) => {
-    const { history, folders, prompts }: LatestExportFormat = importData(data);
+    const { history, folders }: LatestExportFormat = importData(data);
     homeDispatch({ field: 'conversations', value: history });
     homeDispatch({
       field: 'selectedConversation',
       value: history[history.length - 1],
     });
     homeDispatch({ field: 'folders', value: folders });
-    homeDispatch({ field: 'prompts', value: prompts });
+    // homeDispatch({ field: 'prompts', value: prompts });
 
     window.location.reload();
   };
 
   const handleClearConversations = () => {
-    defaultModelId &&
+    defaultMethodId &&
       homeDispatch({
         field: 'selectedConversation',
         value: {
           id: uuidv4(),
           name: t('New Conversation'),
           messages: [],
-          model: OpenAIModels[defaultModelId],
-          prompt: DEFAULT_SYSTEM_PROMPT,
-          temperature: DEFAULT_TEMPERATURE,
+          method: ToolLLaMAMethods[defaultMethodId],
+          top_k: DEFAULT_TOP_K,
           folderId: null,
         },
       });
@@ -154,16 +153,15 @@ export const Chatbar = () => {
 
       saveConversation(updatedConversations[updatedConversations.length - 1]);
     } else {
-      defaultModelId &&
+      defaultMethodId &&
         homeDispatch({
           field: 'selectedConversation',
           value: {
             id: uuidv4(),
             name: t('New Conversation'),
             messages: [],
-            model: OpenAIModels[defaultModelId],
-            prompt: DEFAULT_SYSTEM_PROMPT,
-            temperature: DEFAULT_TEMPERATURE,
+            method: ToolLLaMAMethods[defaultMethodId],
+            top_k: DEFAULT_TOP_K,
             folderId: null,
           },
         });

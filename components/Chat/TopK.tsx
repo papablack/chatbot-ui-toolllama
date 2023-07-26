@@ -2,31 +2,31 @@ import { FC, useContext, useState } from 'react';
 
 import { useTranslation } from 'next-i18next';
 
-import { DEFAULT_TEMPERATURE } from '@/utils/app/const';
+import { DEFAULT_TOP_K } from '@/utils/app/const';
 
 import HomeContext from '@/pages/api/home/home.context';
 
 interface Props {
   label: string;
-  onChangeTemperature: (temperature: number) => void;
+  onChangeTopK: (top_k: number) => void;
 }
 
-export const TemperatureSlider: FC<Props> = ({
+export const TopKSlider: FC<Props> = ({
   label,
-  onChangeTemperature,
+  onChangeTopK,
 }) => {
   const {
     state: { conversations },
   } = useContext(HomeContext);
   const lastConversation = conversations[conversations.length - 1];
-  const [temperature, setTemperature] = useState(
-    lastConversation?.temperature ?? DEFAULT_TEMPERATURE,
+  const [topK, setTopK] = useState(
+    lastConversation?.top_k ?? DEFAULT_TOP_K,
   );
   const { t } = useTranslation('chat');
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = parseFloat(event.target.value);
-    setTemperature(newValue);
-    onChangeTemperature(newValue);
+    setTopK(newValue);
+    onChangeTopK(newValue);
   };
 
   return (
@@ -40,15 +40,15 @@ export const TemperatureSlider: FC<Props> = ({
         )}
       </span>
       <span className="mt-2 mb-1 text-center text-neutral-900 dark:text-neutral-100">
-        {temperature.toFixed(1)}
+        {topK}
       </span>
       <input
         className="cursor-pointer"
         type="range"
-        min={0}
-        max={1}
-        step={0.1}
-        value={temperature}
+        min={1}
+        max={100}
+        step={1}
+        value={topK}
         onChange={handleChange}
       />
       <ul className="w mt-2 pb-8 flex justify-between px-[24px] text-neutral-900 dark:text-neutral-100">

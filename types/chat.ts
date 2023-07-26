@@ -1,18 +1,22 @@
-import { OpenAIModel } from './openai';
+import { ToolLLaMAModel } from './toolllama';
 
 export interface BaseUsage {
     block_id: string;
     occurence : number;
     type: "tool" | "llm" | "recommendation";
+    ongoing: boolean;
+    depth: number;
 }
 
+export interface IntermediateMessage {
+    role: Role;
+    content: string;
+}
 export interface LLMUsage extends BaseUsage {
     type: "llm";
     block_id: string;
     occurence : number;
-    agent_scratchpad: string;
-    input: string;
-    prompt: string;
+    messages: IntermediateMessage[];
     response: string;
 }
 
@@ -21,16 +25,24 @@ export interface ToolUsage extends BaseUsage {
     type: "tool";
     block_id: string;
     occurence : number;
-    thought: string;
+    action: string;
+    status: number;
     tool_name: string;
     tool_description: string;
     tool_input: string;
     output: string;
 }
 
+export interface ToolParameters {
+  options: any;
+  prompt: any;
+  required: any;
+  type: any;
+}
 export interface Tool {
-  tool_name: string;
-  tool_desc: string;
+  name: string;
+  description: string;
+  parameters: ToolParameters;
 }
 export interface ToolRecommendation extends BaseUsage {
   type: "recommendation";
@@ -49,19 +61,16 @@ export interface Message {
 export type Role = 'assistant' | 'user';
 
 export interface ChatBody {
-  model: OpenAIModel;
+  method: ToolLLaMAModel;
   messages: Message[];
-  key: string;
-  prompt: string;
-  temperature: number;
+  top_k: number;
 }
 
 export interface Conversation {
   id: string;
   name: string;
   messages: Message[];
-  model: OpenAIModel;
-  prompt: string;
-  temperature: number;
+  method: ToolLLaMAModel;
+  top_k: number;
   folderId: string | null;
 }

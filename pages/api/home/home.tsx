@@ -15,7 +15,7 @@ import {
   cleanConversationHistory,
   cleanSelectedConversation,
 } from '@/utils/app/clean';
-import { DEFAULT_SYSTEM_PROMPT, DEFAULT_TEMPERATURE } from '@/utils/app/const';
+import { DEFAULT_TOP_K } from '@/utils/app/const';
 import {
   saveConversation,
   saveConversations,
@@ -28,13 +28,13 @@ import { getSettings } from '@/utils/app/settings';
 import { Conversation } from '@/types/chat';
 import { KeyValuePair } from '@/types/data';
 import { FolderInterface, FolderType } from '@/types/folder';
-import { OpenAIModelID, OpenAIModels, fallbackModelID } from '@/types/openai';
+import { ToolLLaMAMethods, ToolLLaMAMethodID, fallbackMethodID } from '@/types/toolllama';
 import { Prompt } from '@/types/prompt';
 
 import { Chat } from '@/components/Chat/Chat';
 import { Chatbar } from '@/components/Chatbar/Chatbar';
 import { Navbar } from '@/components/Mobile/Navbar';
-import Promptbar from '@/components/Promptbar';
+// import Promptbar from '@/components/Promptbar';
 
 import HomeContext from './home.context';
 import { HomeInitialState, initialState } from './home.state';
@@ -44,13 +44,13 @@ import { v4 as uuidv4 } from 'uuid';
 interface Props {
   serverSideApiKeyIsSet: boolean;
   serverSidePluginKeysSet: boolean;
-  defaultModelId: OpenAIModelID;
+  defaultMethodId: ToolLLaMAMethodID;
 }
 
 const Home = ({
   serverSideApiKeyIsSet,
   serverSidePluginKeysSet,
-  defaultModelId,
+  defaultMethodId,
 }: Props) => {
   const { t } = useTranslation('chat');
   const { getModels } = useApiService();
@@ -68,8 +68,7 @@ const Home = ({
       folders,
       conversations,
       selectedConversation,
-      prompts,
-      temperature,
+      top_k
     },
     dispatch,
   } = contextValue;
@@ -92,7 +91,7 @@ const Home = ({
   );
 
   useEffect(() => {
-    if (data) dispatch({ field: 'models', value: data });
+    if (data) dispatch({ field: 'methods', value: data });
   }, [data, dispatch]);
 
   useEffect(() => {
@@ -126,6 +125,7 @@ const Home = ({
   };
 
   const handleDeleteFolder = (folderId: string) => {
+    const prompts: Prompt[] = [];
     const updatedFolders = folders.filter((f) => f.id !== folderId);
     dispatch({ field: 'folders', value: updatedFolders });
     saveFolders(updatedFolders);
@@ -155,7 +155,7 @@ const Home = ({
       return p;
     });
 
-    dispatch({ field: 'prompts', value: updatedPrompts });
+    // dispatch({ field: 'prompts', value: updatedPrompts });
     savePrompts(updatedPrompts);
   };
 
@@ -185,14 +185,12 @@ const Home = ({
       id: uuidv4(),
       name: t('New Conversation'),
       messages: [],
-      model: lastConversation?.model || {
-        id: OpenAIModels[defaultModelId].id,
-        name: OpenAIModels[defaultModelId].name,
-        maxLength: OpenAIModels[defaultModelId].maxLength,
-        tokenLimit: OpenAIModels[defaultModelId].tokenLimit,
+      method: lastConversation?.method || {
+        id: ToolLLaMAMethods[defaultMethodId].id,
+        method: ToolLLaMAMethods[defaultMethodId].method,
+        maxLength: ToolLLaMAMethods[defaultMethodId].maxLength,
       },
-      prompt: DEFAULT_SYSTEM_PROMPT,
-      temperature: lastConversation?.temperature ?? DEFAULT_TEMPERATURE,
+      top_k: lastConversation?.top_k ?? DEFAULT_TOP_K,
       folderId: null,
     };
 
@@ -234,19 +232,19 @@ const Home = ({
   }, [selectedConversation]);
 
   useEffect(() => {
-    defaultModelId &&
-      dispatch({ field: 'defaultModelId', value: defaultModelId });
+    defaultMethodId &&
+      dispatch({ field: 'defaultMethodId', value: defaultMethodId });
     serverSideApiKeyIsSet &&
       dispatch({
         field: 'serverSideApiKeyIsSet',
         value: serverSideApiKeyIsSet,
       });
-    serverSidePluginKeysSet &&
-      dispatch({
-        field: 'serverSidePluginKeysSet',
-        value: serverSidePluginKeysSet,
-      });
-  }, [defaultModelId, serverSideApiKeyIsSet, serverSidePluginKeysSet]);
+    // serverSidePluginKeysSet &&
+    //   dispatch({
+    //     field: 'serverSidePluginKeysSet',
+    //     value: serverSidePluginKeysSet,
+    //   });
+  }, [defaultMethodId, serverSideApiKeyIsSet]);// serverSidePluginKeysSet
 
   // ON LOAD --------------------------------------------
 
@@ -297,10 +295,10 @@ const Home = ({
       dispatch({ field: 'folders', value: JSON.parse(folders) });
     }
 
-    const prompts = localStorage.getItem('prompts');
-    if (prompts) {
-      dispatch({ field: 'prompts', value: JSON.parse(prompts) });
-    }
+    const prompts: Prompt[] = []; //localStorage.getItem('prompts');
+    // if (prompts) {
+    //   dispatch({ field: 'prompts', value: JSON.parse(prompts) });
+    // }
 
     const conversationHistory = localStorage.getItem('conversationHistory');
     if (conversationHistory) {
@@ -333,15 +331,15 @@ const Home = ({
           id: uuidv4(),
           name: t('New Conversation'),
           messages: [],
-          model: OpenAIModels[defaultModelId],
-          prompt: DEFAULT_SYSTEM_PROMPT,
-          temperature: lastConversation?.temperature ?? DEFAULT_TEMPERATURE,
+          method: ToolLLaMAMethods[defaultMethodId],
+          top_k: lastConversation?.top_k ?? DEFAULT_TOP_K,
           folderId: null,
         },
       });
+      console.log(ToolLLaMAMethods[defaultMethodId])
     }
   }, [
-    defaultModelId,
+    defaultMethodId,
     dispatch,
     serverSideApiKeyIsSet,
     serverSidePluginKeysSet,
@@ -386,7 +384,7 @@ const Home = ({
               <Chat stopConversationRef={stopConversationRef} />
             </div>
 
-            <Promptbar />
+            {/*<Promptbar />*/}
           </div>
         </main>
       )}
@@ -396,27 +394,27 @@ const Home = ({
 export default Home;
 
 export const getServerSideProps: GetServerSideProps = async ({ locale }) => {
-  const defaultModelId =
-    (process.env.DEFAULT_MODEL &&
-      Object.values(OpenAIModelID).includes(
-        process.env.DEFAULT_MODEL as OpenAIModelID,
+  const defaultMethodId =
+    (process.env.DEFAULT_METHOD &&
+      Object.values(ToolLLaMAMethodID).includes(
+        process.env.DEFAULT_METHOD as ToolLLaMAMethodID,
       ) &&
-      process.env.DEFAULT_MODEL) ||
-    fallbackModelID;
+      process.env.DEFAULT_METHOD) ||
+    fallbackMethodID;
 
-  let serverSidePluginKeysSet = false;
+  let serverSidePluginKeysSet = true;
 
-  const googleApiKey = process.env.GOOGLE_API_KEY;
-  const googleCSEId = process.env.GOOGLE_CSE_ID;
-
-  if (googleApiKey && googleCSEId) {
-    serverSidePluginKeysSet = true;
-  }
+  // const googleApiKey = process.env.GOOGLE_API_KEY;
+  // const googleCSEId = process.env.GOOGLE_CSE_ID;
+  //
+  // if (googleApiKey && googleCSEId) {
+  //   serverSidePluginKeysSet = true;
+  // }
 
   return {
     props: {
       serverSideApiKeyIsSet: !!process.env.OPENAI_API_KEY,
-      defaultModelId,
+      defaultMethodId,
       serverSidePluginKeysSet,
       ...(await serverSideTranslations(locale ?? 'en', [
         'common',

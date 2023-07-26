@@ -1,9 +1,10 @@
 import { Conversation, Message } from '@/types/chat';
 import { ErrorMessage } from '@/types/error';
 import { FolderInterface } from '@/types/folder';
-import { OpenAIModel, OpenAIModelID } from '@/types/openai';
+import { ToolLLaMAModel, ToolLLaMAMethodID } from '@/types/toolllama';
 import { PluginKey } from '@/types/plugin';
 import { Prompt } from '@/types/prompt';
+
 
 export interface HomeInitialState {
   apiKey: string;
@@ -12,21 +13,22 @@ export interface HomeInitialState {
   lightMode: 'light' | 'dark';
   messageIsStreaming: boolean;
   modelError: ErrorMessage | null;
-  models: OpenAIModel[];
+  // models: OpenAIModel[];
+  methods: ToolLLaMAModel[];
   folders: FolderInterface[];
   conversations: Conversation[];
   selectedConversation: Conversation | undefined;
   currentMessage: Message | undefined;
-  prompts: Prompt[];
-  temperature: number;
+  top_k: number;
   showChatbar: boolean;
   showPromptbar: boolean;
   currentFolder: FolderInterface | undefined;
   messageError: boolean;
   searchTerm: string;
-  defaultModelId: OpenAIModelID | undefined;
+  // defaultModelId: OpenAIModelID | undefined;
+  defaultMethodId: ToolLLaMAMethodID | undefined;
   serverSideApiKeyIsSet: boolean;
-  serverSidePluginKeysSet: boolean;
+  // serverSidePluginKeysSet: boolean;
 }
 
 export const initialState: HomeInitialState = {
@@ -36,19 +38,20 @@ export const initialState: HomeInitialState = {
   lightMode: 'dark',
   messageIsStreaming: false,
   modelError: null,
-  models: [],
+  // models: [],
+  methods: [],
   folders: [],
   conversations: [],
   selectedConversation: undefined,
   currentMessage: undefined,
-  prompts: [],
-  temperature: 1,
+  top_k: 4,
   showPromptbar: true,
   showChatbar: true,
   currentFolder: undefined,
   messageError: false,
   searchTerm: '',
-  defaultModelId: undefined,
-  serverSideApiKeyIsSet: false,
-  serverSidePluginKeysSet: false,
+  // defaultModelId: undefined,
+  defaultMethodId: undefined,
+  serverSideApiKeyIsSet: true,
+  // serverSidePluginKeysSet: false,
 };

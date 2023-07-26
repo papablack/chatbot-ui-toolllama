@@ -1,11 +1,7 @@
 import React from 'react';
 import { Box, Divider, List, ListItem, ListItemText, Typography, Button, IconButton } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
-
-interface Tool {
-  tool_name: string;
-  tool_desc: string;
-}
+import { Tool } from '@/types/chat';
 
 interface ToolRecommenderProps {
   tools: Tool[];
@@ -20,24 +16,13 @@ const ToolRecommender: React.FC<ToolRecommenderProps> = ({ tools, onClose }) => 
   };
 
   return (
-    <Box maxWidth="md" bgcolor="white" p={2}>
-      <IconButton
-        aria-label="Close"
-        onClick={onClose}
-        sx={{
-          position: 'absolute',
-          top: 10,
-          right: 10,
-        }}
-      >
-        <CloseIcon />
-      </IconButton>
-      {/*<Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 600 }}>*/}
-      {/*  Tool Recommendations*/}
-      {/*</Typography>*/}
-      {/*<Divider />*/}
-      <Box display="flex" mt={2}>
-        <Box flex={1} bgcolor="#f5f5f5" p={2} overflow="auto" maxHeight={400} position="sticky" top={0}>
+    <Box maxWidth="md" bgcolor="white" p={2} height="calc(100% - 100px)">
+      <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 600 }}>
+        Tool Recommendations
+      </Typography>
+      <Divider />
+      <Box display="flex" mt={2} height="100%">
+        <Box flex={1} bgcolor="#f5f5f5" p={2} overflow="auto" position="sticky" top={0}>
           <Typography variant="h6" component="h2" gutterBottom sx={{
             color: "black"
           }}>
@@ -46,14 +31,14 @@ const ToolRecommender: React.FC<ToolRecommenderProps> = ({ tools, onClose }) => 
           <List>
             {tools.map((tool) => (
               <ListItem
-                key={tool.tool_name}
+                key={tool.name}
                 button
                 onClick={() => handleToolClick(tool)}
                 sx={{
                   cursor: 'pointer',
                 }}
               >
-                <ListItemText primary={tool.tool_name} />
+                <ListItemText primary={tool.name} />
               </ListItem>
             ))}
           </List>
@@ -66,7 +51,7 @@ const ToolRecommender: React.FC<ToolRecommenderProps> = ({ tools, onClose }) => 
             Description
           </Typography>
           {selectedTool ? (
-            <Typography variant="body1">{selectedTool.tool_desc}</Typography>
+            <Typography variant="body1">{selectedTool.description}</Typography>
           ) : (
             <Typography variant="body1">Select a tool to view its description</Typography>
           )}

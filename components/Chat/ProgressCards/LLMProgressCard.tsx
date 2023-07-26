@@ -25,6 +25,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import Slide from '@mui/material/Slide';
 import { TransitionProps } from '@mui/material/transitions';
 import {LLMUsage, ToolUsage} from "@/types/chat";
+import ReactJson from 'react-json-view'
 
 interface ExpandMoreProps extends IconButtonProps {
   expand: boolean;
@@ -56,6 +57,46 @@ interface LLMProgressCardProps {
   data: LLMUsage
 }
 
+
+const OptionalParagraphTitleTypography = (text: string, title: string, alternate_text: string | undefined) => {
+  if (text) {
+    return (
+      <>
+        <Typography paragraph sx={{
+          fontWeight: 'bold',
+          m: 0,
+        }}>{title}</Typography>
+        <Typography paragraph sx={{
+          m: 0,
+        }}>
+          {text}
+        </Typography>
+      </>
+    )
+  } else {
+    if (alternate_text) {
+      return (
+        <>
+          <Typography paragraph sx={{
+            fontWeight: 'bold',
+            m: 0,
+          }}>{title}</Typography>
+          <Typography paragraph sx={{
+            m: 0,
+
+          }}>
+            {alternate_text}
+          </Typography>
+        </>
+      )
+    } else {
+      return (
+        <></>
+      )
+    }
+  }
+}
+
 const LLMProgressCard = (props: LLMProgressCardProps) => {
   const [expanded, setExpanded] = React.useState(false);
   const [scratchpadDialogOpen, setScratchpadDialogOpen] = React.useState(false);
@@ -72,11 +113,13 @@ const LLMProgressCard = (props: LLMProgressCardProps) => {
     setScratchpadDialogOpen(false);
   }
 
+  const last_message = data.messages[data.messages.length - 1].content;
+  const depth = data.depth || 0;
   return (
     <Box sx={{
-      // set margin left
+      // set margin left based on depth
       m: 0.5,
-      ml: 1
+      ml: 1 + depth
     }}>
       <Card sx={{
         // set background color
@@ -113,8 +156,8 @@ const LLMProgressCard = (props: LLMProgressCardProps) => {
               //Italicize text
               fontStyle: 'italic',
             }}>
-              {data.input ?
-                (data.input.length > 50 ? data.input.substring(0, 50) + "..." : data.input)
+              {last_message ?
+                (last_message.length > 50 ? last_message.substring(0, 50) + "..." : last_message)
                 : "Not available"}
             </Typography>}
           sx={{
@@ -133,52 +176,10 @@ const LLMProgressCard = (props: LLMProgressCardProps) => {
             // remove top padding
             pt: 0,
           }}>
-            {/*Bolded title that says LLM Input: "*/}
-            {data.input ? (
-              <>
-                <Typography paragraph sx={{
-                  // bold text
-                  fontWeight: 'bold',
-                  // remove margin
-                  m: 0,
-                }}>LLM Input: </Typography>
-                <Typography paragraph>
-                  {data.input}
-                </Typography>
-              </>
-            ) : (
-              <></>
-            )}
+            {OptionalParagraphTitleTypography(last_message, "Last Message: ", "Not available...")}
+            {OptionalParagraphTitleTypography(data.response, "LLM Response: ", "Waiting for response...")}
 
-            {data.response ? (
-              <>
-                <Typography paragraph sx={{
-                  // bold text
-                  fontWeight: 'bold',
-                  // remove margin
-                  m: 0,
-                }}>LLM Response: </Typography>
-                <Typography paragraph sx={{
-                }}>
-                  {data.response}
-                </Typography>
-              </>
-            ) : (
-              <>
-                <Typography paragraph sx={{
-                  // bold text
-                  fontWeight: 'bold',
-                  // remove margin
-                  m: 0,
-                }}>LLM Response: </Typography>
-                <Typography paragraph sx={{
-                }}>
-                  Waiting for response...
-                </Typography>
-              </>
-            )}
-
-            {data.agent_scratchpad? (
+            {data.messages? (
               // make a button that says "Show Scratchpad", and when clicked, opens a dialog box with the scratchpad
               <>
                 <Button variant="outlined"
@@ -190,10 +191,11 @@ const LLMProgressCard = (props: LLMProgressCardProps) => {
                   keepMounted
                   onClose={handleScratchpadClose}
                 >
-                  <DialogTitle>{"Agent Scratchpad up to Stage " + data.occurence}</DialogTitle>
+                  <DialogTitle>{"Full LLM History up to Stage " + data.occurence}</DialogTitle>
                   <DialogContent>
                     <DialogContentText>
-                      {data.agent_scratchpad}
+                      {JSON.stringify(data.messages)}
+                      {/*<ReactJson src={data.messages} />*/}
                     </DialogContentText>
                   </DialogContent>
                   <DialogActions>

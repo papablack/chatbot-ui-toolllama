@@ -1,7 +1,7 @@
 import { Conversation } from '@/types/chat';
-import { OpenAIModelID, OpenAIModels } from '@/types/openai';
+import { ToolLLaMAMethods, ToolLLaMAMethodID } from '@/types/toolllama';
 
-import { DEFAULT_SYSTEM_PROMPT, DEFAULT_TEMPERATURE } from './const';
+import {DEFAULT_TOP_K } from './const';
 
 export const cleanSelectedConversation = (conversation: Conversation) => {
   // added model for each conversation (3/20/23)
@@ -13,25 +13,25 @@ export const cleanSelectedConversation = (conversation: Conversation) => {
   let updatedConversation = conversation;
 
   // check for model on each conversation
-  if (!updatedConversation.model) {
+  if (!updatedConversation.method) {
     updatedConversation = {
       ...updatedConversation,
-      model: updatedConversation.model || OpenAIModels[OpenAIModelID.GPT_3_5],
+      method: updatedConversation.method || ToolLLaMAMethods[ToolLLaMAMethodID.DFS],
     };
   }
 
   // check for system prompt on each conversation
-  if (!updatedConversation.prompt) {
-    updatedConversation = {
-      ...updatedConversation,
-      prompt: updatedConversation.prompt || DEFAULT_SYSTEM_PROMPT,
-    };
-  }
+  // if (!updatedConversation.prompt) {
+  //   updatedConversation = {
+  //     ...updatedConversation,
+  //     prompt: updatedConversation.prompt || DEFAULT_SYSTEM_PROMPT,
+  //   };
+  // }
 
-  if (!updatedConversation.temperature) {
+  if (!updatedConversation.top_k) {
     updatedConversation = {
       ...updatedConversation,
-      temperature: updatedConversation.temperature || DEFAULT_TEMPERATURE,
+      top_k: updatedConversation.top_k || DEFAULT_TOP_K,
     };
   }
 
@@ -67,15 +67,15 @@ export const cleanConversationHistory = (history: any[]): Conversation[] => {
   return history.reduce((acc: any[], conversation) => {
     try {
       if (!conversation.model) {
-        conversation.model = OpenAIModels[OpenAIModelID.GPT_3_5];
+        conversation.method = ToolLLaMAMethods[ToolLLaMAMethodID.DFS];
       }
 
-      if (!conversation.prompt) {
-        conversation.prompt = DEFAULT_SYSTEM_PROMPT;
-      }
+      // if (!conversation.prompt) {
+      //   conversation.prompt = DEFAULT_SYSTEM_PROMPT;
+      // }
 
-      if (!conversation.temperature) {
-        conversation.temperature = DEFAULT_TEMPERATURE;
+      if (!conversation.top_k) {
+        conversation.top_k = DEFAULT_TOP_K;
       }
 
       if (!conversation.folderId) {

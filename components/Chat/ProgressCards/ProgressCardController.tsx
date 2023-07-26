@@ -63,27 +63,28 @@ const processObjs = (progressJson: any):BaseUsage[]  => {
       } else if (block_id.includes("recommendation")) {
         obj_dict[block_id] = {
           occurence: 1,
-          block_id: block_id
+          block_id: block_id,
+          recommendations: []
         }
       }
     }
     if (block_id.includes("llm")) {
       switch (progress.method_name) {
         case "on_chain_start": {
-          obj_dict[block_id].agent_scratchpad = progress.agent_scratchpad;
-          obj_dict[block_id].input = progress.input;
+          obj_dict[block_id].depth = progress.depth;
+          obj_dict[block_id].messages = JSON.stringify(progress.messages); // progress.messages
           break
         }
         case "on_llm_start": {
-          obj_dict[block_id].prompt = progress.prompt;
+          obj_dict[block_id].messages = JSON.stringify(progress.messages); // progress.messages
           break
         }
         case "on_llm_end": {
-          obj_dict[block_id].response = progress.response;
+          obj_dict[block_id].response = JSON.stringify(progress.response); // progress.response
           break
         }
         case "on_chain_end": {
-          obj_dict[block_id].response = progress.output;
+          obj_dict[block_id].ongoing=false;
           break
         }
         default: {
@@ -93,25 +94,32 @@ const processObjs = (progressJson: any):BaseUsage[]  => {
     } else if (block_id.includes("tool")) {
       switch (progress.method_name) {
         case "on_agent_action": {
-          obj_dict[block_id].thought = progress.thought;
+          obj_dict[block_id].action = JSON.stringify(progress.action); // progress.action
+          obj_dict[block_id].action_input = JSON.stringify(progress.action_input); // progress.action_input
+          obj_dict[block_id].depth = progress.depth;
           break
         }
         case "on_tool_start": {
           obj_dict[block_id].tool_name = progress.tool_name;
           obj_dict[block_id].tool_input = progress.tool_input;
-          obj_dict[block_id].tool_description = progress.tool_description;
+          obj_dict[block_id].tool_description = JSON.stringify(progress.tool_description); // progress.tool_description
           break
         }
         case "on_tool_end": {
-          obj_dict[block_id].output = progress.output;
+          obj_dict[block_id].output = JSON.stringify(progress.output); // progress.output
+          obj_dict[block_id].status = progress.status;
           break
+        }
+        case "on_chain_end": {
+          obj_dict[block_id].ongoing = false;
         }
         default:  {
           break
         }
       }
     } else if (block_id.includes("recommendation")) {
-      obj_dict[block_id].recommendation = progress.recommendation;
+      obj_dict[block_id].depth = 0;
+      obj_dict[block_id].recommendations = progress.recommendations;
     }
   });
   var ret:BaseUsage[]= [];
@@ -119,19 +127,6 @@ const processObjs = (progressJson: any):BaseUsage[]  => {
   for (var i = 0; i < id_order.length; i++) {
     var block_id = id_order[i];
     ret.push(obj_dict[block_id]);
-
-    // if (block_id.includes("llm")) {
-    //   ret.push(obj_dict[block_id])
-    // } else if (block_id.includes("tool")) {
-    //   ret.push(
-    //     <ToolProgressCard
-    //       key={block_id}
-    //       data={obj_dict[block_id]}
-    //     />
-    //   )
-    // } else {
-    //   ret.push(obj_dict[id_order[i]]);
-    // }
 
   }
   ret = ret.filter((x) => x !== undefined);
@@ -143,32 +138,32 @@ const generateCards = (progressJson: any) => {
   var progressObjs: BaseUsage[] = processObjs(progressJson);
   console.log(progressObjs);
   var components : ReactElement[] = [];
-  const tools  =
-    {
-      type: "recommendation",
-      occurence: 1,
-      block_id: "recommendation-1",
-      recommendations:[
-        { tool_name: 'Tool 1', tool_desc: 'Description 1' },
-        { tool_name: 'Tool 2', tool_desc: 'Description 2' },
-        { tool_name: 'Tool 3', tool_desc: 'Description 3' },
-        { tool_name: 'Tool 4', tool_desc: 'Description 4' },
-        { tool_name: 'Tool 5', tool_desc: 'Description 5' },
-        { tool_name: 'Tool 6', tool_desc: 'Description 6' },
-        { tool_name: 'Tool 7', tool_desc: 'Description 7' },
-        { tool_name: 'Tool 8', tool_desc: 'Description 8' },
-        { tool_name: 'Tool 9', tool_desc: 'Description 9' },
-        { tool_name: 'Tool 10', tool_desc: 'Description 10' },
-        { tool_name: 'Tool 11', tool_desc: 'Description 11' },
-        { tool_name: 'Tool 12', tool_desc: 'Description 12' },
-      ]
-    } as ToolRecommendation;
-  components.push(
-    <ToolRecommendationCard
-      key={tools.block_id}
-      data={tools}
-    />
-  )
+  // const tools  =
+  //   {
+  //     type: "recommendation",
+  //     occurence: 1,
+  //     block_id: "recommendation-1",
+  //     recommendations:[
+  //       { tool_name: 'Tool 1', tool_desc: 'Description 1' },
+  //       { tool_name: 'Tool 2', tool_desc: 'Description 2' },
+  //       { tool_name: 'Tool 3', tool_desc: 'Description 3' },
+  //       { tool_name: 'Tool 4', tool_desc: 'Description 4' },
+  //       { tool_name: 'Tool 5', tool_desc: 'Description 5' },
+  //       { tool_name: 'Tool 6', tool_desc: 'Description 6' },
+  //       { tool_name: 'Tool 7', tool_desc: 'Description 7' },
+  //       { tool_name: 'Tool 8', tool_desc: 'Description 8' },
+  //       { tool_name: 'Tool 9', tool_desc: 'Description 9' },
+  //       { tool_name: 'Tool 10', tool_desc: 'Description 10' },
+  //       { tool_name: 'Tool 11', tool_desc: 'Description 11' },
+  //       { tool_name: 'Tool 12', tool_desc: 'Description 12' },
+  //     ]
+  //   } as ToolRecommendation;
+  // components.push(
+  //   <ToolRecommendationCard
+  //     key={tools.block_id}
+  //     data={tools}
+  //   />
+  // )
   for (var i = 0; i < progressObjs.length; i++) {
     // console.log(progressObjs[i])
     if (progressObjs[i].block_id.includes("llm")) {

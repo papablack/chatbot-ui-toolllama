@@ -1,27 +1,63 @@
 import { FC, memo } from "react";
 import { ChatMessage, Props } from "./ChatMessage";
-import {LLMUsage, ToolUsage} from "@/types/chat";
+import {LLMUsage, Role, ToolUsage} from "@/types/chat";
 
-// export interface LLMUsage {
-//     type: "llm";
-//     block_id: string;
-//     occurence : number;
-//     agent_scratchpad: string;
-//     input: string;
-//     prompt: string;
-//     response: string;
+// export interface BaseUsage {
+//   block_id: string;
+//   occurence : number;
+//   type: "tool" | "llm" | "recommendation";
+//   ongoing: boolean;
+//   depth: number;
+// }
+//
+// export interface IntermediateMessage {
+//   role: Role;
+//   content: string;
+// }
+// export interface LLMUsage extends BaseUsage {
+//   type: "llm";
+//   block_id: string;
+//   occurence : number;
+//   messages: IntermediateMessage[];
+//   response: string;
 // }
 //
 //
-// export interface ToolUsage {
-//     type: "tool";
-//     block_id: string;
-//     occurence : number;
-//     thought: string;
-//     tool_name: string;
-//     tool_description: string;
-//     tool_input: string;
-//     output: string;
+// export interface ToolUsage extends BaseUsage {
+//   type: "tool";
+//   block_id: string;
+//   occurence : number;
+//   action: string;
+//   status: number;
+//   tool_name: string;
+//   tool_description: string;
+//   tool_input: string;
+//   output: string;
+// }
+//
+// export interface ToolParameters {
+//   options: any;
+//   prompt: any;
+//   required: any;
+//   type: any;
+// }
+// export interface Tool {
+//   name: string;
+//   description: string;
+//   parameters: ToolParameters;
+// }
+// export interface ToolRecommendation extends BaseUsage {
+//   type: "recommendation";
+//   occurence : number;
+//   block_id: string;
+//   recommendations: Tool[];
+// }
+//
+// export interface Message {
+//   role: Role;
+//   content: string;
+//   tools: ToolUsage[] | LLMUsage[];
+//   recommendations: ToolRecommendation[];
 // }
 
 const CompareElements = (a: LLMUsage | ToolUsage, b: LLMUsage | ToolUsage) => {
@@ -34,9 +70,7 @@ const CompareElements = (a: LLMUsage | ToolUsage, b: LLMUsage | ToolUsage) => {
         b = b as LLMUsage;
         if (a.block_id !== b.block_id
           || a.occurence !== b.occurence
-          || a.agent_scratchpad !== b.agent_scratchpad
-          || a.input !== b.input
-          || a.prompt !== b.prompt
+          || a.messages !== b.messages
           || a.response !== b.response) {
             return false;
         }
@@ -45,7 +79,8 @@ const CompareElements = (a: LLMUsage | ToolUsage, b: LLMUsage | ToolUsage) => {
         b = b as ToolUsage;
         if (a.block_id !== b.block_id
           || a.occurence !== b.occurence
-          || a.thought !== b.thought
+          || a.action !== b.action
+          || a.status !== b.status
           || a.tool_name !== b.tool_name
           || a.tool_description !== b.tool_description
           || a.tool_input !== b.tool_input
@@ -72,7 +107,7 @@ export const MemoizedChatMessage: FC<Props> = memo(
             return false;
         }
         if (prevundefined === undefined && nextundefined === undefined) {
-            return true;
+          return true;
         }
 
         // now they should both be defined

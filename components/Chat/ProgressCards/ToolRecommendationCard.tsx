@@ -25,27 +25,16 @@ import DialogTitle from '@mui/material/DialogTitle';
 import Slide from '@mui/material/Slide';
 import Button from "@mui/material/Button";
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
-import { TransitionProps } from '@mui/material/transitions';
+import {TransitionProps} from '@mui/material/transitions';
 import {LLMUsage, ToolUsage, ToolRecommendation} from "@/types/chat";
 import ToolRecommenderInterface from "@/components/Chat/ToolRecommender/ToolRecommenderInterface";
 import ToolRecommenderDialog from "@/components/Chat/ToolRecommender/ToolRecommenderDialog";
+import OpenInFullIcon from '@mui/icons-material/OpenInFull';
+import {CircularProgress} from "@mui/material";
 
 interface ExpandMoreProps extends IconButtonProps {
   expand: boolean;
 }
-
-const ExpandMore = styled((props: ExpandMoreProps) => {
-  const { expand, ...other } = props;
-  return <IconButton {...other} />;
-})(({ theme, expand }) => ({
-  transform: !expand ? 'rotate(0deg)' : 'rotate(180deg)',
-  marginLeft: 'auto',
-  transition: theme.transitions.create('transform', {
-    duration: theme.transitions.duration.shortest,
-  }),
-}));
-
-
 
 const Transition = React.forwardRef(function Transition(
   props: TransitionProps & {
@@ -62,12 +51,13 @@ interface ToolProgressCardProps {
 
 const summarizeToolUsage = (toolUsage: ToolRecommendation) => {
   var recommendations = toolUsage.recommendations;
-  var summary = "Using tools: ";
+  // var summary = "Using tools: ";
+  var summary = "";
   if (recommendations.length == 0) {
     return "";
   }
   for (var i = 0; i < recommendations.length; i++) {
-    var tool_name = recommendations[i].tool_name;
+    var tool_name = recommendations[i].name;
     if (i == recommendations.length - 1) {
       summary += tool_name;
     } else {
@@ -78,23 +68,33 @@ const summarizeToolUsage = (toolUsage: ToolRecommendation) => {
 }
 
 const ToolProgressCard = (props: ToolProgressCardProps) => {
-  const [expanded, setExpanded] = React.useState(false);
-  const [scratchpadDialogOpen, setScratchpadDialogOpen] = React.useState(false);
+  const [recommendationDialogOpen, setRecommendationDialogOpen] = React.useState(false);
   var data = props.data;
-  const handleExpandClick = () => {
-    setExpanded(!expanded);
-  };
+  // const handleExpandClick = () => {
+  //   setExpanded(!expanded);
+  // };
 
-  const handleDescriptionOpen = () => {
-    setScratchpadDialogOpen(true);
+  const handleRecommendationOpen = () => {
+    setRecommendationDialogOpen(true);
   }
 
-  const handleDescriptionClose = () => {
-    setScratchpadDialogOpen(false);
+  const handleRecommendationClose = () => {
+    setRecommendationDialogOpen(false);
   }
 
   const toolSummary = summarizeToolUsage(data);
 
+  const setExpandProgressIcon = (loading: boolean) => {
+    if (loading) {
+      return <CircularProgress />
+    } else {
+      return <IconButton aria-label="settings" onClick={handleRecommendationOpen}>
+        <OpenInFullIcon/>
+      </IconButton>
+    }
+  }
+
+  console.log("Props", props.data)
   return (
     <Box sx={{
       // set margin left
@@ -114,49 +114,29 @@ const ToolProgressCard = (props: ToolProgressCardProps) => {
             <BuildIcon/>
           }
           action={
-            <ExpandMore
-              expand={expanded}
-              onClick={handleExpandClick}
-              aria-expanded={expanded}
-              aria-label="show more"
-            >
-              <ExpandMoreIcon/>
-            </ExpandMore>
+            setExpandProgressIcon(props.data.recommendations.length==0)
           }
-          title={<Typography paragraph sx={{
-            fontWeight: 'bold',
-            m: 0,
-          }}>
-            {"Using Tools - " + data.occurence}
-          </Typography>}
-          subheader={
-            <Typography paragraph sx={{
-              // remove margin
-              m: 0,
-              //Italicize text
-              fontStyle: 'italic',
-            }}>
-              {toolSummary ?
-                (toolSummary.length > 50 ? toolSummary.substring(0, 50) + "..." : toolSummary)
-                : "Not available"}
-            </Typography>}
+          title={
+            <>
+              <Typography paragraph sx={{
+                m:0
+              }}>
+                {/*Make first part bold and second part normal*/}
+                <span style={{ fontWeight: 'bold' }}>Tool Recommendations: </span> {toolSummary ?
+                  (toolSummary.length > 30 ? toolSummary.substring(0, 30) + "..." : toolSummary)
+                  : "Not available"}
+              </Typography>
+            </>
+          }
+          subheader={<></>
+          }
           sx={{
-            // left align title
             textAlign: 'left',
           }}
           disableTypography
         />
-        <Collapse in={expanded} timeout="auto" unmountOnExit sx={{
-          // left align text
-          textAlign: 'left',
-        }}>
-          <CardContent sx={{
-            // remove top padding
-            pt: 0,
-          }}>
-            <ToolRecommenderInterface tools={data.recommendations} onClose={handleExpandClick}/>
-          </CardContent>
-        </Collapse>
+        <ToolRecommenderDialog tools={data.recommendations} open={recommendationDialogOpen}
+                               onClose={handleRecommendationClose}/>
       </Card>
     </Box>
   );

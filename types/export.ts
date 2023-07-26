@@ -1,6 +1,6 @@
 import { Conversation, Message } from './chat';
 import { FolderInterface } from './folder';
-import { OpenAIModel } from './openai';
+import { OpenAIModel } from './toolllama';
 import { Prompt } from './prompt';
 
 export type SupportedExportFormats =
@@ -41,5 +41,4 @@ export interface ExportFormatV4 {
   version: 4;
   history: Conversation[];
   folders: FolderInterface[];
-  prompts: Prompt[];
 }

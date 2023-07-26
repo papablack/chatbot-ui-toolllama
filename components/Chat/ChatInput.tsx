@@ -48,10 +48,12 @@ export const ChatInput = ({
   const { t } = useTranslation('chat');
 
   const {
-    state: { selectedConversation, messageIsStreaming, prompts },
+    state: { selectedConversation, messageIsStreaming },
 
     dispatch: homeDispatch,
   } = useContext(HomeContext);
+
+  const prompts: Prompt[] = [];
 
   const [content, setContent] = useState<string>();
   const [isTyping, setIsTyping] = useState<boolean>(false);
@@ -71,7 +73,7 @@ export const ChatInput = ({
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
-    const maxLength = selectedConversation?.model.maxLength;
+    const maxLength = selectedConversation?.method.maxLength;
 
     if (maxLength && value.length > maxLength) {
       alert(
@@ -97,7 +99,7 @@ export const ChatInput = ({
       return;
     }
 
-    onSend({ role: 'user', content }, plugin);
+    onSend({ role: 'user', content, tools: [], recommendations: []}, plugin);
     setContent('');
     setPlugin(null);
 

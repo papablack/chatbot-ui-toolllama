@@ -12,7 +12,6 @@ import toast from 'react-hot-toast';
 
 import { useTranslation } from 'next-i18next';
 
-import { getEndpoint } from '@/utils/app/api';
 import {
   saveConversation,
   saveConversations,
@@ -31,7 +30,7 @@ import { ChatLoader } from './ChatLoader';
 import { ErrorMessageDiv } from './ErrorMessageDiv';
 import { ModelSelect } from './ModelSelect';
 import { SystemPrompt } from './SystemPrompt';
-import { TemperatureSlider } from './Temperature';
+import { TopKSlider } from './TopK';
 import { MemoizedChatMessage } from './MemoizedChatMessage';
 import ProgressCardController from "@/components/Chat/ProgressCards/ProgressCardController";
 interface Props {
@@ -45,14 +44,13 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
     state: {
       selectedConversation,
       conversations,
-      models,
+      methods,
       apiKey,
       pluginKeys,
       serverSideApiKeyIsSet,
       messageIsStreaming,
       modelError,
       loading,
-      prompts,
     },
     handleUpdateConversation,
     dispatch: homeDispatch,
@@ -96,27 +94,13 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
         console.log("Set messageIsStreaming to true");
 
         const chatBody: ChatBody = {
-          model: updatedConversation.model,
+          method: updatedConversation.method,
           messages: updatedConversation.messages,
-          key: apiKey,
-          prompt: updatedConversation.prompt,
-          temperature: updatedConversation.temperature,
+          top_k: 1,
         };
-        const endpoint = getEndpoint(plugin);
+        const endpoint = "api/chat";
         let body;
-        if (!plugin) {
-          body = JSON.stringify(chatBody);
-        } else {
-          body = JSON.stringify({
-            ...chatBody,
-            googleAPIKey: pluginKeys
-              .find((key) => key.pluginId === 'google-search')
-              ?.requiredKeys.find((key) => key.key === 'GOOGLE_API_KEY')?.value,
-            googleCSEId: pluginKeys
-              .find((key) => key.pluginId === 'google-search')
-              ?.requiredKeys.find((key) => key.key === 'GOOGLE_CSE_ID')?.value,
-          });
-        }
+        body = JSON.stringify(chatBody);
         const controller = new AbortController();
         const response = await fetch(endpoint, {
           method: 'POST',
@@ -175,7 +159,8 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
               try {
                 var obj = JSON.parse(line);
                 if (obj?.method_name === "on_request_end") {
-                  text = obj.output;
+                  var temp = JSON.parse(obj.output);
+                  text = temp.final_answer;
                 }
                 return obj;
               } catch (e) {
@@ -398,7 +383,9 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
 
                 <SystemPrompt
                   conversation={selectedConversation}
-                  prompts={prompts}
+                  prompts={[]}
+                  // prompts
+
                   onChangePrompt={(prompt) =>
                     handleUpdateConversation(selectedConversation, {
                       key: 'prompt',
@@ -428,8 +415,8 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
             ) : (
               <>
                 <div className="sticky top-0 z-10 flex justify-center border border-b-neutral-300 bg-neutral-100 py-2 text-sm text-neutral-500 dark:border-none dark:bg-[#444654] dark:text-neutral-200">
-                  {t('Model')}: {selectedConversation?.model.name} | {t('Temp')}
-                  : {selectedConversation?.temperature} |
+                  {t('Method')}: {selectedConversation?.method.method} | {t('Top K')}
+                  : {selectedConversation?.top_k} |
                   <button
                     className="ml-2 cursor-pointer hover:opacity-50"
                     onClick={handleSettings}

@@ -44,7 +44,7 @@ export const ChatMessage: FC<Props> = memo(({ message, messageIndex, onEdit }) =
   const [messagedCopied, setMessageCopied] = useState(false);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-
+  console.log("Chatmessage", message);
   const toggleEditing = () => {
     setIsEditing(!isEditing);
   };

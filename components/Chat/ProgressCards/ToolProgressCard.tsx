@@ -57,6 +57,46 @@ const Transition = React.forwardRef(function Transition(
 interface ToolProgressCardProps {
   data: ToolUsage
 }
+
+const OptionalParagraphTitleTypography = (text: string, title: string, alternate_text: string | undefined) => {
+  if (text) {
+    return (
+      <>
+        <Typography paragraph sx={{
+          fontWeight: 'bold',
+          m: 0,
+        }}>{title}</Typography>
+        <Typography paragraph sx={{
+          m: 0,
+        }}>
+          {text}
+        </Typography>
+      </>
+    )
+  } else {
+    if (alternate_text) {
+      return (
+        <>
+          <Typography paragraph sx={{
+            fontWeight: 'bold',
+            m: 0,
+          }}>{title}</Typography>
+          <Typography paragraph sx={{
+            m: 0,
+
+          }}>
+            {alternate_text}
+          </Typography>
+        </>
+      )
+    } else {
+      return (
+        <></>
+      )
+    }
+  }
+}
+
 const ToolProgressCard = (props: ToolProgressCardProps) => {
   const [expanded, setExpanded] = React.useState(false);
   const [scratchpadDialogOpen, setScratchpadDialogOpen] = React.useState(false);
@@ -72,12 +112,12 @@ const ToolProgressCard = (props: ToolProgressCardProps) => {
   const handleDescriptionClose = () => {
     setScratchpadDialogOpen(false);
   }
-
+  const depth = data.depth || 0;
   return (
     <Box sx={{
       // set margin left
       m: 0.5,
-      ml: 1
+      ml: 1 + depth
     }}>
       <Card sx={{
         // set background color
@@ -134,25 +174,7 @@ const ToolProgressCard = (props: ToolProgressCardProps) => {
             // remove top padding
             pt: 0,
           }}>
-            {data.thought ? (
-              <>
-                <Typography paragraph sx={{
-                  // bold text
-                  fontWeight: 'bold',
-                  // remove margin
-                  m: 0,
-                }}>Agent Goal: </Typography>
-                <Typography paragraph sx={{
-                  // remove margin
-                  m: 0,
-
-                }}>
-                  {data.thought}
-                </Typography>
-              </>
-            ) : (
-              <></>
-            )}
+            {OptionalParagraphTitleTypography(data.action, "Action: ", undefined)}
 
             {data.tool_name? (
               // put these in the same line
@@ -180,70 +202,10 @@ const ToolProgressCard = (props: ToolProgressCardProps) => {
                 </IconButton>
               </Box>
             ):(
-              <>
-                {/*<Typography paragraph sx={{*/}
-                {/*    // bold text*/}
-                {/*    fontWeight: 'bold',*/}
-                {/*    // remove margin*/}
-                {/*    m: 0,*/}
-                {/*}}>Tool Name: </Typography>*/}
-                {/*<Typography paragraph sx={{*/}
-                {/*    // remove margin*/}
-                {/*    m: 0,*/}
-                {/*    ml: 0.5,*/}
-                {/*}}>*/}
-                {/*    {data.tool_name}*/}
-                {/*</Typography>*/}
-              </>
-            )}
-
-            {data.tool_input ? (
-              <>
-                <Typography paragraph sx={{
-                  // bold text
-                  fontWeight: 'bold',
-                  // remove margin
-                  m: 0,
-                }}>Tool Input: </Typography>
-                <Typography paragraph sx={{
-                  m:0
-                }}>
-                  {data.tool_input}
-                </Typography>
-              </>
-            ):(
               <></>
             )}
-
-            {data.output ? (
-              <>
-                <Typography paragraph sx={{
-                  // bold text
-                  fontWeight: 'bold',
-                  // remove margin
-                  m: 0,
-                }}>Tool Output: </Typography>
-                <Typography paragraph sx={{
-                  m:0
-                }}>
-                  {data.output}
-                </Typography>
-              </>
-            ) : (
-              <>
-                <Typography paragraph sx={{
-                  // bold text
-                  fontWeight: 'bold',
-                  // remove margin
-                  m: 0,
-                }}>Tool Output: </Typography>
-                <Typography paragraph sx={{
-                  m:0
-                }}>
-                  Waiting for output...
-                </Typography>
-              </>
-            )}
+            {OptionalParagraphTitleTypography(data.tool_input, "Tool Input: ", undefined)}
+            {OptionalParagraphTitleTypography(data.output, "Tool Output: ", undefined)}
             {data.tool_description? (
               // make a button that says "Show Scratchpad", and when clicked, opens a dialog box with the scratchpad
               <>

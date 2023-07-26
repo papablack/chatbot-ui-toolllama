@@ -1,4 +1,4 @@
-import { DEFAULT_SYSTEM_PROMPT, DEFAULT_TEMPERATURE } from '@/utils/app/const';
+import { DEFAULT_SYSTEM_PROMPT, DEFAULT_TOP_K } from '@/utils/app/const';
 import {
   cleanData,
   isExportFormatV1,
@@ -9,7 +9,7 @@ import {
 } from '@/utils/app/importExport';
 
 import { ExportFormatV1, ExportFormatV2, ExportFormatV4 } from '@/types/export';
-import { OpenAIModelID, OpenAIModels } from '@/types/openai';
+import { ToolLLaMAMethods, ToolLLaMAMethodID } from '@/types/toolllama';
 
 import { describe, expect, it } from 'vitest';
 
@@ -100,9 +100,8 @@ describe('cleanData Functions', () => {
                 content: 'Hi',
               },
             ],
-            model: OpenAIModels[OpenAIModelID.GPT_3_5],
-            prompt: DEFAULT_SYSTEM_PROMPT,
-            temperature: DEFAULT_TEMPERATURE,
+            methods: ToolLLaMAMethods[ToolLLaMAMethodID.DFS],
+            top_k: DEFAULT_TOP_K,
             folderId: null,
           },
         ],
@@ -156,9 +155,8 @@ describe('cleanData Functions', () => {
                 content: 'Hi',
               },
             ],
-            model: OpenAIModels[OpenAIModelID.GPT_3_5],
-            prompt: DEFAULT_SYSTEM_PROMPT,
-            temperature: DEFAULT_TEMPERATURE,
+            methods: ToolLLaMAMethods[ToolLLaMAMethodID.DFS],
+            top_k: DEFAULT_TOP_K,
             folderId: null,
           },
         ],
@@ -192,9 +190,8 @@ describe('cleanData Functions', () => {
                 content: 'Hi',
               },
             ],
-            model: OpenAIModels[OpenAIModelID.GPT_3_5],
-            prompt: DEFAULT_SYSTEM_PROMPT,
-            temperature: DEFAULT_TEMPERATURE,
+            method: ToolLLaMAMethods[ToolLLaMAMethodID.DFS],
+            top_k: DEFAULT_TOP_K,
             folderId: null,
           },
         ],
@@ -203,16 +200,6 @@ describe('cleanData Functions', () => {
             id: '1',
             name: 'folder 1',
             type: 'chat',
-          },
-        ],
-        prompts: [
-          {
-            id: '1',
-            name: 'prompt 1',
-            description: '',
-            content: '',
-            model: OpenAIModels[OpenAIModelID.GPT_3_5],
-            folderId: null,
           },
         ],
       } as ExportFormatV4;
@@ -235,9 +222,8 @@ describe('cleanData Functions', () => {
                 content: 'Hi',
               },
             ],
-            model: OpenAIModels[OpenAIModelID.GPT_3_5],
-            prompt: DEFAULT_SYSTEM_PROMPT,
-            temperature: DEFAULT_TEMPERATURE,
+            methods: ToolLLaMAMethods[ToolLLaMAMethodID.DFS],
+            top_k: DEFAULT_TOP_K,
             folderId: null,
           },
         ],
@@ -246,16 +232,6 @@ describe('cleanData Functions', () => {
             id: '1',
             name: 'folder 1',
             type: 'chat',
-          },
-        ],
-        prompts: [
-          {
-            id: '1',
-            name: 'prompt 1',
-            description: '',
-            content: '',
-            model: OpenAIModels[OpenAIModelID.GPT_3_5],
-            folderId: null,
           },
         ],
       });

@@ -3,7 +3,7 @@ import { useContext } from 'react';
 
 import { useTranslation } from 'next-i18next';
 
-import { OpenAIModel } from '@/types/openai';
+import { OpenAIModel, ToolLLaMAModel } from '@/types/toolllama';
 
 import HomeContext from '@/pages/api/home/home.context';
 
@@ -11,7 +11,7 @@ export const ModelSelect = () => {
   const { t } = useTranslation('chat');
 
   const {
-    state: { selectedConversation, models, defaultModelId },
+    state: { selectedConversation, methods, defaultMethodId },
     handleUpdateConversation,
     dispatch: homeDispatch,
   } = useContext(HomeContext);
@@ -20,9 +20,9 @@ export const ModelSelect = () => {
     selectedConversation &&
       handleUpdateConversation(selectedConversation, {
         key: 'model',
-        value: models.find(
-          (model) => model.id === e.target.value,
-        ) as OpenAIModel,
+        value: methods.find(
+          (method) => method.id === e.target.value,
+        ) as ToolLLaMAModel,
       });
   };
 
@@ -35,18 +35,18 @@ export const ModelSelect = () => {
         <select
           className="w-full bg-transparent p-2"
           placeholder={t('Select a model') || ''}
-          value={selectedConversation?.model?.id || defaultModelId}
+          value={selectedConversation?.method?.id || defaultMethodId}
           onChange={handleChange}
         >
-          {models.map((model) => (
+          {methods.map((method) => (
             <option
-              key={model.id}
-              value={model.id}
+              key={method.id}
+              value={method.id}
               className="dark:bg-[#343541] dark:text-white"
             >
-              {model.id === defaultModelId
-                ? `Default (${model.name})`
-                : model.name}
+              {method.id === defaultMethodId
+                ? `Default (${method.name})`
+                : method.name}
             </option>
           ))}
         </select>

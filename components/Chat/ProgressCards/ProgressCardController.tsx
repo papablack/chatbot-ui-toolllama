@@ -81,7 +81,7 @@ const processObjs = (progressJson: any):BaseUsage[]  => {
     if (block_id.includes("llm")) {
       switch (progress.method_name) {
         case "on_chain_start": {
-          obj_dict[block_id].depth = Math.round(progress.depth / 3);
+          obj_dict[block_id].depth = progress.depth;
           obj_dict[block_id].messages = JSON.stringify(progress.messages); // progress.messages
           break
         }
@@ -112,7 +112,7 @@ const processObjs = (progressJson: any):BaseUsage[]  => {
         case "on_agent_action": {
           obj_dict[block_id].action = JSON.stringify(progress.action); // progress.action
           obj_dict[block_id].action_input = JSON.stringify(progress.action_input); // progress.action_input
-          obj_dict[block_id].depth = Math.round(progress.depth / 3);
+          obj_dict[block_id].depth =  progress.depth;
           break
         }
         case "on_tool_start": {
@@ -122,7 +122,12 @@ const processObjs = (progressJson: any):BaseUsage[]  => {
           break
         }
         case "on_tool_end": {
-          obj_dict[block_id].output = JSON.stringify(progress.output); // progress.output
+          // check if progress.output is a string
+          if (typeof progress.output === "string") {
+            obj_dict[block_id].output = progress.output;
+          } else {
+            obj_dict[block_id].output = JSON.stringify(progress.output);
+          }
           obj_dict[block_id].status = progress.status;
           break
         }
@@ -152,9 +157,9 @@ const processObjs = (progressJson: any):BaseUsage[]  => {
 
 
 const generateCards = (progressJson: any) => {
-  console.log("progressJson", progressJson)
+  // console.log("progressJson", progressJson)
   var progressObjs: BaseUsage[] = processObjs(progressJson);
-  console.log("progressObjs", progressObjs)
+  // console.log("progressObjs", progressObjs)
   var lastdepth = 0;
   var reactNOdeBacktrack = [];
   var startingIndex= 1;

@@ -27,6 +27,10 @@ import { TransitionProps } from '@mui/material/transitions';
 import {LLMUsage, ToolUsage} from "@/types/chat";
 import ReactJson from 'react-json-view'
 import CircularProgressWithContent from "@/components/Chat/ProgressCards/CircularProgressWithIcon";
+import dynamic from "next/dynamic";
+import {Grow} from "@mui/material";
+
+const DynamicReactJson = dynamic(import('react-json-view'), { ssr: false });
 
 interface ExpandMoreProps extends IconButtonProps {
   expand: boolean;
@@ -42,6 +46,16 @@ const ExpandMore = styled((props: ExpandMoreProps) => {
     duration: theme.transitions.duration.shortest,
   }),
 }));
+
+const StyledDialog = styled(Dialog)(({ theme }) => ({
+  '& .MuiDialog-paper': {
+    transition: theme.transitions.create('transform', {
+      duration: theme.transitions.duration.enteringScreen,
+      easing: 'cubic-bezier(0.25, 1, 0.5, 1)',
+    }),
+  },
+}));
+
 
 
 
@@ -113,9 +127,22 @@ const LLMProgressCard = (props: LLMProgressCardProps) => {
   const handleScratchpadClose = () => {
     setScratchpadDialogOpen(false);
   }
+  var messages : any = {
+    "messages": [
+      {
+        "error": "Error: No message history available",
+      },
+    ],
+  };
+  try {
+    messages = JSON.parse(data.messages as unknown as string)
+    //   messages:
+    // };
+  } catch (e) {
+    console.log("Error parsing JSON: ", e);
+  }
 
-  const last_message = data.messages[data.messages.length - 1].content;
-  // console.log("data.messages", data.messages)
+  console.log(messages)
   const depth = data.depth || 0;
   return (
     <Box sx={{
@@ -134,89 +161,104 @@ const LLMProgressCard = (props: LLMProgressCardProps) => {
         // // set max width
         // maxWidth: '600px',
       }}>
-        <CardHeader
-          avatar={
-          // SmartToyIcon with smaller size
-            <SmartToyIcon fontSize="small"/>
-            // <CircularProgressWithContent
-            //   icon={<SmartToyIcon/>}
-            //   progress={data.ongoing}
-            // />
-          }
-          action={
-            <ExpandMore
-              expand={expanded}
-              onClick={handleExpandClick}
-              aria-expanded={expanded}
-              aria-label="show more"
-            >
-              <ExpandMoreIcon/>
-            </ExpandMore>
-          }
-          title={
-            <>
-              <Typography paragraph sx={{
-                m:0
-              }}>
-                {/*Make first part bold and second part normal*/}
-                <span style={{ fontWeight: 'bold' }}>{data.occurence}. Inferencing LLaMA: </span>
-                {last_message ?
-                  (last_message.length > 50 ? last_message.substring(0, 50) + "..." : last_message)
-                  : "Not available"}
-              </Typography>
-            </>
-          }
-          sx={{
-            // left align title
-            textAlign: 'left',
-          }}
-          disableTypography
-        />
-        <Collapse in={expanded} timeout="auto" unmountOnExit sx={{
-          // left align text
-          textAlign: 'left',
-          // slightly lighter text opacity
-          opacity: 0.6,
+        <Box sx={{
+          mb: -1,
+          mt: -1,
         }}>
-          <CardContent sx={{
-            // remove top padding
-            pt: 0,
-          }}>
-            {OptionalParagraphTitleTypography(last_message, "Last Message: ", "Not available...")}
-            {OptionalParagraphTitleTypography(data.response, "LLM Response: ", "Waiting for response...")}
-
-            {data.messages? (
-              // make a button that says "Show Scratchpad", and when clicked, opens a dialog box with the scratchpad
+          <CardHeader
+            avatar={
+              // SmartToyIcon with smaller size
+              <SmartToyIcon fontSize="small"/>
+              // <CircularProgressWithContent
+              //   icon={<SmartToyIcon/>}
+              //   progress={data.ongoing}
+              // />
+            }
+            action={
+              <ExpandMore
+                expand={expanded}
+                onClick={handleExpandClick}
+                aria-expanded={expanded}
+                aria-label="show more"
+              >
+                <ExpandMoreIcon/>
+              </ExpandMore>
+            }
+            title={
               <>
-                <Button variant="outlined"
-                        onClick={() => handleScratchpadOpen()}
-                >Show Agent Scratchpad</Button>
-                <Dialog
-                  open={scratchpadDialogOpen}
-                  TransitionComponent={Transition}
-                  keepMounted
-                  onClose={handleScratchpadClose}
-                >
-                  <DialogTitle>{"Full LLM History up to Stage " + data.occurence}</DialogTitle>
-                  <DialogContent>
-                    <DialogContentText>
-                      {JSON.stringify(data.messages)}
-                      {/*<ReactJson src={data.messages} />*/}
-                    </DialogContentText>
-                  </DialogContent>
-                  <DialogActions>
-                    <Button onClick={handleScratchpadClose}>Close</Button>
-                  </DialogActions>
-                </Dialog>
-
+                <Typography paragraph sx={{
+                  m:0
+                }}>
+                  {/*Make first part bold and second part normal*/}
+                  <span style={{ fontWeight: 'bold' }}>{data.occurence}. Inferencing LLaMA: </span>
+                  {data.response ?
+                    (data.response.length > 20 ? data.response.substring(0, 20) + "..." : data.response)
+                    : "Not available"}
+                </Typography>
               </>
-            ): (
-              <></>
-            )}
+            }
+            sx={{
+              // left align title
+              textAlign: 'left',
+            }}
+            disableTypography
+          />
+          <Collapse in={expanded} timeout="auto" unmountOnExit sx={{
+            // left align text
+            textAlign: 'left',
+            // slightly lighter text opacity
+            // opacity: 0.6,
+          }}>
+            <CardContent sx={{
+              // remove top padding
+              pt: 0,
+            }}>
+              {/*{OptionalParagraphTitleTypography(last_message, "Last Message: ", "Not available...")}*/}
+              {OptionalParagraphTitleTypography(data.response, "LLM Response: ", "Waiting for response...")}
+
+              {data.messages? (
+                // make a button that says "Show Scratchpad", and when clicked, opens a dialog box with the scratchpad
+                <>
+
+                  <Button sx={{
+                    mt: 2,
+                  }} variant="outlined"
+                          onClick={() => handleScratchpadOpen()}
+                  >View Message History</Button>
+                  <StyledDialog
+                    open={scratchpadDialogOpen}
+                    TransitionComponent={Grow}
+                    transitionDuration={500}
+                    onClose={handleScratchpadClose}
+                  >
+                    <DialogTitle>{"Full LLM History up to Stage " + data.occurence}</DialogTitle>
+                    <DialogContent>
+                      <DynamicReactJson
+                        src={messages}
+                        displayDataTypes={false}
+                        indentWidth={2}
+                        displayObjectSize={false}
+                      />
+                      {/*<DialogContentText>*/}
+                      {/*  /!*{JSON.stringify(data.messages)}*!/*/}
+                      {/*  */}
+                      {/*</DialogContentText>*/}
+                    </DialogContent>
+                    <DialogActions>
+                      <Button onClick={handleScratchpadClose}>Close</Button>
+                    </DialogActions>
+                  </StyledDialog>
+
+                </>
+              ): (
+                <></>
+              )}
 
 
-          </CardContent>
-        </Collapse>
+            </CardContent>
+          </Collapse>
+        </Box>
+
       </Card>
     </Box>
 

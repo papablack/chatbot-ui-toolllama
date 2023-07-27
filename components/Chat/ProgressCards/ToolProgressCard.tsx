@@ -28,10 +28,25 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import {TransitionProps} from '@mui/material/transitions';
 import {LLMUsage, ToolUsage} from "@/types/chat";
 import CircularProgressWithContent from "@/components/Chat/ProgressCards/CircularProgressWithIcon";
+import dynamic from "next/dynamic";
+import {Grow} from "@mui/material";
+
+const DynamicReactJson = dynamic(import('react-json-view'), { ssr: false });
+
 
 interface ExpandMoreProps extends IconButtonProps {
   expand: boolean;
 }
+
+const StyledDialog = styled(Dialog)(({ theme }) => ({
+  '& .MuiDialog-paper': {
+    transition: theme.transitions.create('transform', {
+      duration: theme.transitions.duration.enteringScreen,
+      easing: 'cubic-bezier(0.25, 1, 0.5, 1)',
+    }),
+  },
+}));
+
 
 const ExpandMore = styled((props: ExpandMoreProps) => {
   const {expand, ...other} = props;
@@ -112,6 +127,17 @@ const ToolProgressCard = (props: ToolProgressCardProps) => {
   const handleDescriptionClose = () => {
     setScratchpadDialogOpen(false);
   }
+
+  var description = {
+    "state": "Waiting..."
+  }
+  if (data.tool_description) {
+    try {
+      description = JSON.parse(data.tool_description);
+    } catch (e) {
+      console.log("Error parsing JSON: " + e);
+    }
+  }
   const depth = data.depth || 0;
   return (
     <Box sx={{
@@ -129,111 +155,123 @@ const ToolProgressCard = (props: ToolProgressCardProps) => {
         // set max width
         // maxWidth: '600px',
       }}>
-        <CardHeader
-          avatar={
-            <BuildIcon fontSize="small"/>
-            // <CircularProgressWithContent
-            //   icon={}
-            //   progress={data.ongoing}
-            // />
-          }
-          action={
-            <ExpandMore
-              expand={expanded}
-              onClick={handleExpandClick}
-              aria-expanded={expanded}
-              aria-label="show more"
-            >
-              <ExpandMoreIcon/>
-            </ExpandMore>
-          }
-          title={
-            <>
-              <Typography paragraph sx={{
-                m: 0
-              }}>
-                {/*Make first part bold and second part normal*/}
-                <span style={{fontWeight: 'bold'}}>{data.occurence}. Using Tools: </span>
-                {data.tool_name ?
-                  (data.tool_name.length > 30 ? data.tool_name.substring(0, 30) + "..." : data.tool_name)
-                  : "Not available"}
-              </Typography>
-            </>
-          }
-          sx={{
-            // left align title
-            textAlign: 'left',
-          }}
-          disableTypography
-        />
-        <Collapse in={expanded} timeout="auto" unmountOnExit sx={{
-          // left align text
-          textAlign: 'left',
-          // slightly lighter text opacity
-          opacity: 0.6,
+        <Box sx={{
+          mb: -1,
+          mt: -1,
         }}>
-          <CardContent sx={{
-            // remove top padding
-            pt: 0,
-          }}>
-            {OptionalParagraphTitleTypography(data.action, "Action: ", undefined)}
-
-            {data.tool_name ? (
-              // put these in the same line
-              <Box sx={{
-                display: 'flex',
-                flexDirection: 'row',
-                alignItems: 'center',
-              }}>
-                <Typography paragraph sx={{
-                  // bold text
-                  fontWeight: 'bold',
-                  // remove margin
-                  m: 0,
-                }}>Tool Name: </Typography>
-                <Typography paragraph sx={{
-                  // remove margin
-                  m: 0,
-                  ml: 0.5,
-                }}>
-                  {data.tool_name}
-                </Typography>
-                {/*Mini information icon button*/}
-                <IconButton aria-label="info" size="small" onClick={handleDescriptionOpen}>
-                  <InfoOutlinedIcon/>
-                </IconButton>
-              </Box>
-            ) : (
-              <></>
-            )}
-            {OptionalParagraphTitleTypography(data.tool_input, "Tool Input: ", undefined)}
-            {OptionalParagraphTitleTypography(data.output, "Tool Output: ", undefined)}
-            {data.tool_description ? (
-              // make a button that says "Show Scratchpad", and when clicked, opens a dialog box with the scratchpad
+          <CardHeader
+            avatar={
+              <BuildIcon fontSize="small"/>
+              // <CircularProgressWithContent
+              //   icon={}
+              //   progress={data.ongoing}
+              // />
+            }
+            action={
+              <ExpandMore
+                expand={expanded}
+                onClick={handleExpandClick}
+                aria-expanded={expanded}
+                aria-label="show more"
+              >
+                <ExpandMoreIcon/>
+              </ExpandMore>
+            }
+            title={
               <>
-                <Dialog
-                  open={scratchpadDialogOpen}
-                  TransitionComponent={Transition}
-                  keepMounted
-                  onClose={handleDescriptionClose}
-                >
-                  <DialogTitle>{data.tool_name}</DialogTitle>
-                  <DialogContent>
-                    <DialogContentText>
-                      {data.tool_description}
-                    </DialogContentText>
-                  </DialogContent>
-                  <DialogActions>
-                    <Button onClick={handleDescriptionClose}>Close</Button>
-                  </DialogActions>
-                </Dialog>
-
+                <Typography paragraph sx={{
+                  m: 0
+                }}>
+                  {/*Make first part bold and second part normal*/}
+                  <span style={{fontWeight: 'bold'}}>{data.occurence}. Using Tools: </span>
+                  {data.tool_name ?
+                    (data.tool_name.length > 30 ? data.tool_name.substring(0, 30) + "..." : data.tool_name)
+                    : "Not available"}
+                </Typography>
               </>
-            ) : (
-              <></>
-            )}
-          </CardContent>
-        </Collapse>
+            }
+            sx={{
+              // left align title
+              textAlign: 'left',
+            }}
+            disableTypography
+          />
+          <Collapse in={expanded} timeout="auto" unmountOnExit sx={{
+            // left align text
+            textAlign: 'left',
+            // slightly lighter text opacity
+            // opacity: 0.6,
+          }}>
+            <CardContent sx={{
+              // remove top padding
+              pt: 0,
+            }}>
+              {OptionalParagraphTitleTypography(data.action, "Action: ", undefined)}
+
+              {data.tool_name ? (
+                // put these in the same line
+                <Box sx={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                }}>
+                  <Typography paragraph sx={{
+                    // bold text
+                    fontWeight: 'bold',
+                    // remove margin
+                    m: 0,
+                  }}>Tool Name: </Typography>
+                  <Typography paragraph sx={{
+                    // remove margin
+                    m: 0,
+                    ml: 0.5,
+                  }}>
+                    {data.tool_name}
+                  </Typography>
+                  {/*Mini information icon button*/}
+                  <IconButton aria-label="info" size="small" onClick={handleDescriptionOpen}>
+                    <InfoOutlinedIcon/>
+                  </IconButton>
+                </Box>
+              ) : (
+                <></>
+              )}
+              {OptionalParagraphTitleTypography(data.tool_input, "Tool Input: ", undefined)}
+              {OptionalParagraphTitleTypography(data.output, "Tool Output: ", undefined)}
+              {data.tool_description ? (
+                // make a button that says "Show Scratchpad", and when clicked, opens a dialog box with the scratchpad
+                <>
+                  <StyledDialog
+                    open={scratchpadDialogOpen}
+                    TransitionComponent={Grow}
+                    transitionDuration={500}
+                    onClose={handleDescriptionClose}
+                  >
+                    <DialogTitle>{data.tool_name}</DialogTitle>
+                    <DialogContent>
+                      <DynamicReactJson
+                        src={description}
+                        displayDataTypes={false}
+                        indentWidth={2}
+                        displayObjectSize={false}
+                      />
+                      {/*<DialogContentText>*/}
+                      {/*  {data.tool_description}*/}
+                      {/*</DialogContentText>*/}
+                    </DialogContent>
+                    <DialogActions>
+                      <Button onClick={handleDescriptionClose}>Close</Button>
+                    </DialogActions>
+                  </StyledDialog>
+
+                </>
+              ) : (
+                <></>
+              )}
+            </CardContent>
+          </Collapse>
+        </Box>
+
       </Card>
     </Box>
   );

@@ -14,7 +14,7 @@ export class OpenAIError extends Error {
   }
 }
 
-const url = "https://xc44c40rny5tvg-5000.proxy.runpod.net/stream";
+const url = "http://127.0.0.1:5000/stream";
 
 export const ToolLLaMaStream = async (
   messages: Message[],

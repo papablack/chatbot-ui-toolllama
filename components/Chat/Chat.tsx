@@ -141,6 +141,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
           let text = '';
           let result = '';
           let resultObjs: any = [];
+          let error = false;
           while (!done) {
             if (stopConversationRef.current) {
               controller.abort();
@@ -149,7 +150,12 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
             }
             const { value, done: doneReading } = await reader.read();
             done = doneReading;
-            if (done) break;
+            if (error) break;
+            if (done) {
+              if (resultObjs.length === 0) {
+                error = true;
+              }
+            }
 
             var decoded = decoder.decode(value);
             result += decoded;
@@ -176,53 +182,32 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
 
             // Now we have a list of resultObjs just like before, turn it into a list of messages
 
-
             if (isFirst) {
               isFirst = false;
               const updatedMessages: Message[] = [
                 ...updatedConversation.messages,
                 { role: 'assistant', content: text, tools: resultObjs, recommendations: []},
               ];
-              updatedConversation = {
-                ...updatedConversation,
-                messages: updatedMessages,
-              };
-              homeDispatch({
-                field: 'selectedConversation',
-                value: updatedConversation,
-              });
+              updatedConversation = {...updatedConversation, messages: updatedMessages};
+              homeDispatch({field: 'selectedConversation', value: updatedConversation});
 
             } else {
-              const updatedMessages: Message[] =
-                updatedConversation.messages.map((message, index) => {
-
-                  if (index === updatedConversation.messages.length - 1) {
-                    return {
-                      ...message,
-                      content: text,
-                      tools: resultObjs,
-                    };
-                  }
-                  return message;
-                });
-              updatedConversation = {
-                ...updatedConversation,
-                messages: updatedMessages,
-              };
-              homeDispatch({
-                field: 'selectedConversation',
-                value: updatedConversation,
-              });
+              // create deep copy of updatedConversation
+              const updatedMessages: Message[] = updatedConversation.messages.map((message, index) => message);
+              updatedMessages[updatedMessages.length - 1] = {
+                ...updatedMessages[updatedMessages.length - 1],
+                content: text,
+                tools: resultObjs,
+              }
+              updatedConversation = { ...updatedConversation, messages: updatedMessages};
+              homeDispatch({ field: 'selectedConversation', value: updatedConversation});
             }
           }
 
           console.log("updatedConversation", updatedConversation);
           saveConversation(updatedConversation);
-          const updatedConversations: Conversation[] = conversations.map(
-            (conversation) => {
-              if (conversation.id === selectedConversation.id) {
-                return updatedConversation;
-              }
+          const updatedConversations: Conversation[] = conversations.map( (conversation) => {
+              if (conversation.id === selectedConversation.id) return updatedConversation;
               return conversation;
             },
           );
@@ -238,15 +223,10 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
             ...updatedConversation.messages,
             { role: 'assistant', content: answer, tools: [], recommendations: []},
           ];
-          updatedConversation = {
-            ...updatedConversation,
-            messages: updatedMessages,
-          };
-          homeDispatch({
-            field: 'selectedConversation',
-            value: updateConversation,
-          });
+          updatedConversation = {...updatedConversation, messages: updatedMessages};
+          homeDispatch({ field: 'selectedConversation', value: updateConversation});
           saveConversation(updatedConversation);
+
           const updatedConversations: Conversation[] = conversations.map(
             (conversation) => {
               if (conversation.id === selectedConversation.id) {

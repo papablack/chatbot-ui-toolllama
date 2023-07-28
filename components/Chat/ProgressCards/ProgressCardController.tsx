@@ -7,18 +7,21 @@ import {ReactElement, ReactNode, useState} from "react";
 import Typography from "@mui/material/Typography";
 import Alert from "@mui/material/Alert";
 import {BaseUsage, LLMUsage, ToolUsage, ToolRecommendation} from "@/types/chat";
-import SnackbarError  from "@/components/Chat/ProgressCards/SnackbarError";
+import SnackbarError from "@/components/Chat/ProgressCards/SnackbarError";
 import {handle} from "mdast-util-to-markdown/lib/handle";
+import Collapse from "@mui/material/Collapse";
+import Button from "@mui/material/Button";
+
 const generate_random_id = () => {
   return Math.random().toString(36).substr(2, 9);
 }
-const processObjs = (progressJson: any):BaseUsage[]  => {
+const processObjs = (progressJson: any): BaseUsage[] => {
   // check if progressJson is a list, and if its empty
   if (!Array.isArray(progressJson) || !progressJson.length) {
     return [];
   }
   var id_order: string[] = [];
-  var obj_dict:  any = {};
+  var obj_dict: any = {};
   var tool_count = 0;
   var llm_count = 0;
   // create a dictionary of objects, with the block_id as the key
@@ -100,7 +103,7 @@ const processObjs = (progressJson: any):BaseUsage[]  => {
           break
         }
         case "on_chain_end": {
-          obj_dict[block_id].ongoing=false;
+          obj_dict[block_id].ongoing = false;
           break
         }
         default: {
@@ -112,7 +115,7 @@ const processObjs = (progressJson: any):BaseUsage[]  => {
         case "on_agent_action": {
           obj_dict[block_id].action = JSON.stringify(progress.action); // progress.action
           obj_dict[block_id].action_input = JSON.stringify(progress.action_input); // progress.action_input
-          obj_dict[block_id].depth =  progress.depth;
+          obj_dict[block_id].depth = progress.depth;
           break
         }
         case "on_tool_start": {
@@ -135,7 +138,7 @@ const processObjs = (progressJson: any):BaseUsage[]  => {
           obj_dict[block_id].ongoing = false;
           break
         }
-        default:  {
+        default: {
           break
         }
       }
@@ -144,7 +147,7 @@ const processObjs = (progressJson: any):BaseUsage[]  => {
       if (progress.recommendations) obj_dict[block_id].recommendations = progress.recommendations;
     }
   });
-  var ret:BaseUsage[]= [];
+  var ret: BaseUsage[] = [];
   // for each object, add it to the return list
   for (var i = 0; i < id_order.length; i++) {
     var block_id = id_order[i];
@@ -162,13 +165,13 @@ const generateCards = (progressJson: any) => {
   // console.log("progressObjs", progressObjs)
   var lastdepth = 0;
   var reactNOdeBacktrack = [];
-  var startingIndex= 1;
+  var startingIndex = 1;
 
   var root: BaseUsage = {
     occurence: -1,
     type: "root",
     block_id: "root",
-    ongoing:false,
+    ongoing: false,
     depth: -1,
     children: [],
     parent: null
@@ -185,19 +188,19 @@ const generateCards = (progressJson: any) => {
     }
   }
   if (startingIndex >= progressObjs.length) {
-    return <>
-      {toolRecommendations}
-    </>
+    return {
+      toolRecommendations: toolRecommendations,
+      cards: null,
+    }
   }
 
   var root1 = progressObjs[startingIndex];
   root1.parent = root;
   root.children.push(root1);
-  
 
 
   // recursively convert to tree based on depth (progressObjs is the preorder traversal)
-  function convertPreorderToTree(index: number, progressObjs: BaseUsage[],  root: any) {
+  function convertPreorderToTree(index: number, progressObjs: BaseUsage[], root: any) {
     if (index >= progressObjs.length) {
       return;
     }
@@ -223,6 +226,7 @@ const generateCards = (progressJson: any) => {
     }
     convertPreorderToTree(index + 1, progressObjs, curr);
   }
+
   convertPreorderToTree(2, progressObjs, root1);
 
   // convert tree to react nodes (only LLMProgressCard and ToolProgressCard)
@@ -269,7 +273,7 @@ const generateCards = (progressJson: any) => {
       borderLeft: '1px solid #999999',
       pl: 1.5,
     }
-    if (root.depth==0) sxWithBar = {};
+    if (root.depth == 0) sxWithBar = {};
 
     return (
       <Box sx={{
@@ -286,40 +290,51 @@ const generateCards = (progressJson: any) => {
             backgroundColor: 'transparent',
           },
         }
-      }} >
+      }}>
         {components}
       </Box>
     )
   }
+
   var result = convertTreeToReactNodes(root);
 
-  // expand all elements in toolRecommendations into result
-  return <Box sx={{
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'flex-start',
-    minWidth: "500px",
-    width: "500px"
-  }}>
-    {toolRecommendations}
-    <Typography paragraph sx={{
-      fontWeight: 'bold',
-      mb:0,
-      mt: 2
-    }} >
-      Starting Tool Chain...
-    </Typography>
-    {result}
-  </Box>
+  return {
+    toolRecommendations: toolRecommendations,
+    cards: result,
+  }
+
+  // // expand all elements in toolRecommendations into result
+  // return <Box sx={{
+  //   display: 'flex',
+  //   flexDirection: 'column',
+  //   alignItems: 'flex-start',
+  //   minWidth: "600px",
+  //   width: "600px"
+  // }}>
+  //   {toolRecommendations}
+  //   <Typography paragraph sx={{
+  //     fontWeight: 'bold',
+  //     mb:0,
+  //     mt: 2
+  //   }} >
+  //     Starting Tool Chain...
+  //     {/*Button with onclick*/}
+  //   </Typography>
+  //   <Collapse in={true} timeout="auto" unmountOnExit>
+  //     {result}
+  //   </Collapse>
+  // </Box>
 }
 
 interface ProgressCardControllerProps {
   progressJson: LLMUsage[] | ToolUsage[] | undefined;
   className: string;
 }
+
 const ProgressCardController = (props: ProgressCardControllerProps) => {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarContent, setSnackbarContent] = useState("");
+  const [collapsed, setCollapsed] = useState(true);
   const handleSnackbarClose = () => {
     setSnackbarOpen(false);
   }
@@ -328,11 +343,61 @@ const ProgressCardController = (props: ProgressCardControllerProps) => {
     setSnackbarOpen(true);
   }
 
+  var temp = generateCards(props.progressJson);
+  var cards = temp.cards;
+  var toolRecommendations = temp.toolRecommendations;
+
   return (
-    <Box sx={{
-    }}>
-      {generateCards(props.progressJson)}
-      <SnackbarError open={snackbarOpen} handleClose={handleSnackbarClose} content={snackbarContent} />
+    <Box sx={{}}>
+      <Box sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'flex-start',
+        minWidth: "600px",
+        width: "600px"
+      }}>
+        {toolRecommendations}
+        {cards &&
+          (
+            <>
+              <Box sx={{
+                mt:2
+              }}>
+                <Typography paragraph sx={{
+                  fontWeight: 'bold',
+                  mb: 0
+                }}>
+                  Starting Tool Chain...
+                  {/*Expand link with onclick*/}
+                  <Button
+                    variant="text"
+                    sx={{
+                      color: 'white',
+                      textTransform: 'none',
+                      fontSize: '1rem',
+                      fontWeight: 'normal',
+                      ml: 0,
+                      '&:hover': {
+                        backgroundColor: 'transparent',
+                        textDecoration: 'underline',
+                      }
+                    }}
+                    onClick={() => setCollapsed(!collapsed)}
+                  >
+                    {collapsed ? "Collapse" : "Expand"}
+                  </Button>
+
+                </Typography>
+              </Box>
+
+              <Collapse in={collapsed} timeout="auto" unmountOnExit>
+                {cards}
+              </Collapse></>
+          )
+        }
+      </Box>
+
+      <SnackbarError open={snackbarOpen} handleClose={handleSnackbarClose} content={snackbarContent}/>
     </Box>
   );
 }

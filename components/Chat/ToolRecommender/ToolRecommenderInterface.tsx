@@ -16,7 +16,7 @@ const ToolRecommender: React.FC<ToolRecommenderProps> = ({ tools, onClose }) => 
   };
 
   return (
-    <Box maxWidth="md" bgcolor="white" p={2} height="calc(100% - 100px)">
+    <Box maxWidth="md" bgcolor="white" p={2} height="calc(100% - 100px)" width="100%">
       <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 600 }}>
         Tool Recommendations
       </Typography>
@@ -57,11 +57,11 @@ const ToolRecommender: React.FC<ToolRecommenderProps> = ({ tools, onClose }) => 
           )}
         </Box>
       </Box>
-      <Box textAlign="right" mt={2}>
-        <Button variant="text" onClick={onClose}>
-          Close
-        </Button>
-      </Box>
+      {/*<Box textAlign="right" mt={2}>*/}
+      {/*  <Button variant="text" onClick={onClose}>*/}
+      {/*    Close*/}
+      {/*  </Button>*/}
+      {/*</Box>*/}
     </Box>
   );
 };

@@ -5,6 +5,7 @@ import { Dialog, DialogTitle, DialogContent, Button, IconButton, Grow, styled } 
 import ToolRecommenderInterface from "@/components/Chat/ToolRecommender/ToolRecommenderInterface";
 import { Close as CloseIcon } from '@mui/icons-material';
 import { Tool } from '@/types/chat';
+import DialogActions from "@mui/material/DialogActions";
 
 
 interface ToolRecommenderDialogProps {
@@ -51,6 +52,9 @@ const ToolRecommenderDialog: React.FC<ToolRecommenderDialogProps> = ({tools, ope
         <DialogContent>
           <ToolRecommenderInterface tools={tools} onClose={onClose} />
         </DialogContent>
+        {/*<DialogActions>*/}
+        {/*  <Button onClick={onClose}>Close</Button>*/}
+        {/*</DialogActions>*/}
       </StyledDialog>
     </>
   );

@@ -142,7 +142,7 @@ const LLMProgressCard = (props: LLMProgressCardProps) => {
     console.log("Error parsing JSON: ", e);
   }
 
-  console.log(messages)
+  // console.log(messages)
   const depth = data.depth || 0;
   return (
     <Box sx={{

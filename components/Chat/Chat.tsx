@@ -96,8 +96,9 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
         const chatBody: ChatBody = {
           method: updatedConversation.method,
           messages: updatedConversation.messages,
-          top_k: 1,
+          top_k: updatedConversation.top_k,
         };
+        console.log("updatedConversation", updatedConversation)
         const endpoint = "api/chat";
         let body;
         body = JSON.stringify(chatBody);
@@ -178,7 +179,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
             });
             //@ts-ignore
             resultObjs = resultObjs.filter((obj) => obj !== null);
-            console.log("resultObjs", resultObjs);
+            // console.log("resultObjs", resultObjs);
 
             // Now we have a list of resultObjs just like before, turn it into a list of messages
 
@@ -361,15 +362,24 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
               <div className="flex h-full flex-col space-y-4 rounded-lg border border-neutral-200 p-4 dark:border-neutral-600">
                 <ModelSelect />
 
-                <SystemPrompt
-                  conversation={selectedConversation}
-                  prompts={[]}
-                  // prompts
+                {/*<SystemPrompt*/}
+                {/*  conversation={selectedConversation}*/}
+                {/*  prompts={[]}*/}
+                {/*  // prompts*/}
 
-                  onChangePrompt={(prompt) =>
+                {/*  onChangePrompt={(prompt) =>*/}
+                {/*    handleUpdateConversation(selectedConversation, {*/}
+                {/*      key: 'prompt',*/}
+                {/*      value: prompt,*/}
+                {/*    })*/}
+                {/*  }*/}
+                {/*/>*/}
+                <TopKSlider
+                  label={t('Temperature')}
+                  onChangeTopK={(top_k) =>
                     handleUpdateConversation(selectedConversation, {
-                      key: 'prompt',
-                      value: prompt,
+                      key: 'top_k',
+                      value: top_k,
                     })
                   }
                 />

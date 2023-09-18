@@ -2,8 +2,8 @@ version: '3.6'
 
 services:
   chatgpt:
+    env_file:
+      - ./.env.local
     build: .
     ports:
-      - 3000:3000
-    environment:
-      - 'OPENAI_API_KEY='
+      - ${LLM_WEB_PORT}:${LLM_WEB_PORT}
